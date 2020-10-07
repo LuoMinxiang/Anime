@@ -4,9 +4,18 @@ import './index.css';
 import App from './App';
 import * as serviceWorker from './serviceWorker';
 
+import Preview from './Preview/Preview'
+import { Router, Route } from 'react-router'
+import {createHashHistory} from 'history'
+
+const hashHistory = createHashHistory() // hash模式
+
 ReactDOM.render(
   <React.StrictMode>
-    <App />
+     <Router history={hashHistory}>
+      <Route exact path="/" component={App}/>
+      <Route path="/preview" component={Preview}/>
+    </Router>
   </React.StrictMode>,
   document.getElementById('root')
 );
