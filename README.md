@@ -1,9 +1,10 @@
 clone本项目到本地并运行：
 1.  在git bash中进入某个目录下（想clone到哪个目录就进入哪个目录）
 2.  运行：git clone git@github.com:MarsTokio/Anime.git
-3.  运行：npm install
-4.  运行：npm start
-5.  打开chrome浏览器输入http://localhost:3000
+3.  运行：cd Anime
+4.  运行：npm install
+5.  运行：npm start
+6.  打开chrome浏览器输入http://localhost:3000
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
