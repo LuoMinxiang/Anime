@@ -1,0 +1,29 @@
+{
+  "name": "server",
+  "version": "1.0.0",
+  "description": "a server application for anime",
+  "main": "server.js",
+  "dependencies": {
+    "body-parser": "^1.19.0",
+    "cookie-parser": "^1.4.5",
+    "ejs": "^3.1.5",
+    "express": "^4.17.1",
+    "multer": "^1.4.2",
+    "react-reveal": "^1.2.2"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/MarsTokio/Anime.git"
+  },
+  "author": "MarsTokio",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/MarsTokio/Anime/issues"
+  },
+  "homepage": "https://github.com/MarsTokio/Anime#readme"
+}
