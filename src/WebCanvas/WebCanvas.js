@@ -15,13 +15,17 @@ class WebCanvas extends React.Component{
           //按编号排列的setter背景颜色集合
           setterColorArray : [],
           //按编号排列的setter内容集合
-          setterContentArray : []
+          setterContentArray : [],
+
+          //按编号排列的setter动效信息集合
+          setterAniInfoArray : []
         };
         this.handleSetterClick = this.handleSetterClick.bind(this);
         this.handleCanvasClick = this.handleCanvasClick.bind(this);
         this.handleKeyDown = this.handleKeyDown.bind(this);
     }
     componentDidMount(){
+      //新增布局组件函数
         this.emitter = EventEmitter.addListener("ClickedAddLayoutSetter",(msg) => {
             // add a LayoutSetter on click
             let arr = [...this.state.LayoutSetterArray];
@@ -32,7 +36,17 @@ class WebCanvas extends React.Component{
             let colorArr = [...this.state.setterColorArray];
             colorArr.push("transparent");
             this.setState({setterColorArray : colorArr});
+            //初始化动效设置数据
+            let animeInfoArray = [...this.state.setterAniInfoArray];
+            animeInfoArray.push({
+              reveal : ""
+            });
+            this.setState({
+              setterAniInfoArray : animeInfoArray
+            })
         })
+
+        //改变选中布局组件颜色函数
         this.emitter = EventEmitter.addListener("SelectedSetterColorChanged",(msg) => {
             // change the color of the selected layout setter
             let colorArr = [...this.state.setterColorArray];
@@ -41,16 +55,33 @@ class WebCanvas extends React.Component{
               setterColorArray : colorArr
             })
         })
+
+        //改变选中布局组件内容函数
         this.emitter = EventEmitter.addListener("setSelectedSetterContent",(msg)=>{
-          //按了富文本编辑器的ok之后设置setter中的内容哦
+          //按了富文本编辑器的ok之后设置setter中的内容
           let contentArray = [...this.state.setterContentArray];
           contentArray[this.state.activeKey] = msg;
           this.setState({
             setterContentArray : contentArray
           })
         })
+
         //监听删除键，将选中的setter删除
         document.addEventListener("keydown", this.handleKeyDown);
+
+        //设置选中布局组件的动效
+        this.emitter = EventEmitter.addListener("getAnim",(msg)=>{
+          //alert("getAnim!!! msg.reveal = " + msg.reveal);
+          //在动效设置区选好了动效后设置setter中的内容
+          if(this.state.activeKey != null){
+            let animeInfoArray = [...this.state.setterAniInfoArray];
+            animeInfoArray[this.state.activeKey] = msg;
+            this.setState({
+              setterAniInfoArray : animeInfoArray
+            })
+            //演示加上的动效：将这个
+          }
+        })
     }
     canvasStyle = {
         width : "100%",
@@ -114,7 +145,13 @@ class WebCanvas extends React.Component{
         <div style={this.canvasStyle} onClick={this.handleCanvasClick}>
             {this.state.LayoutSetterArray.map((item,index) => item === undefined?null:
             <div key={index} onClick={(e) => this.handleSetterClick(index,e)}>
-              <LayoutSetter index={index} onKeyDown={this.handleKeyDown} activeKey={getActiveKey()} selectedSetterColor={getSelectedSetterColor(index)} data={this.state.setterContentArray[index]}>
+              <LayoutSetter 
+                  index={index} 
+                  onKeyDown={this.handleKeyDown} 
+                  activeKey={getActiveKey()} 
+                  selectedSetterColor={getSelectedSetterColor(index)} 
+                  data={this.state.setterContentArray[index]}
+                  animeInfo={this.state.setterAniInfoArray[index]}>
               </LayoutSetter>
             </div>)}
         </div>);

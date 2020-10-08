@@ -1,0 +1,61 @@
+{
+  "posts": [
+    {
+      "0": {
+        "totalN": 1,
+        "index": 0,
+        "width": 320,
+        "height": 200,
+        "x": 304,
+        "y": 122,
+        "color": "rgba(245,166,35,1)",
+        "content": "\n<h2 style=\"text-align: center;\">\n  TinyMCE provides a <span style=\"text-decoration: underline;\">full-featured</span> rich text editing experience, and a featherweight download.\n</h2>\n<p style=\"text-align: center;\">\n  <strong><span style=\"font-size: 14pt;\"><span style=\"color: #7e8c8d; font-weight: 600;\">No matter what you're building, TinyMCE has got you covered.</span></span></strong>\n</p>",
+        "animInfo": {
+          "reveal": ""
+        }
+      },
+      "id": 1
+    }
+  ],
+  "comments": [
+    {
+      "id": 1,
+      "body": "some comment",
+      "postId": 1
+    }
+  ],
+  "profile": {
+    "name": "typicode"
+  },
+  "setterInfo": {
+    "totalN": 2,
+    "setters": [
+      {
+        "totalN": 2,
+        "index": 0,
+        "width": "551px",
+        "height": "153px",
+        "x": 317,
+        "y": 141,
+        "color": "rgba(245,166,35,1)",
+        "content": "\n<h2 style=\"text-align: center;\">\n  TinyMCE provides a <span style=\"text-decoration: underline;\">full-featured</span> rich text editing experience, and a featherweight download.\n</h2>\n<p style=\"text-align: center;\">\n  <strong><span style=\"font-size: 14pt;\"><span style=\"color: #7e8c8d; font-weight: 600;\">No matter what you're building, TinyMCE has got you covered.</span></span></strong>\n</p>",
+        "animInfo": {
+          "reveal": "Fade"
+        }
+      },
+      {
+        "totalN": 2,
+        "index": 1,
+        "width": "272px",
+        "height": "435px",
+        "x": 0,
+        "y": 0,
+        "color": "rgba(80,227,194,1)",
+        "content": "\n<h2 style=\"text-align: center;\">\n  TinyMCE provides a <span style=\"text-decoration: underline;\">full-featured</span> rich text editing experience, and a featherweight download.\n</h2>\n<p style=\"text-align: center;\">\n  <strong><span style=\"font-size: 14pt;\"><span style=\"color: #7e8c8d; font-weight: 600;\">No matter what you're building, TinyMCE has got you covered.</span></span></strong>\n</p>",
+        "animInfo": {
+          "reveal": "Zoom"
+        }
+      }
+    ]
+  }
+}

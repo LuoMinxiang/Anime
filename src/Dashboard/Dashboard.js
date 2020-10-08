@@ -116,8 +116,8 @@ const useStyles = makeStyles((theme) => ({
   },
   //规定画布宽高的样式
   fixedHeight: {
-      width:1024,
-    height: 768,
+    width:1200,
+    height: 712,
     //height: 1536,
     position: 'relative'
   },

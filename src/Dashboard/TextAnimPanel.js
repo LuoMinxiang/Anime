@@ -22,7 +22,7 @@ class TextAnimPanel extends React.Component{
     this.reveal = event.target.value;
     //alert("reveal = " + this.reveal);
     const animInfo = {};
-    animInfo["reveal"] = this.reveal;
+    animInfo.reveal = this.reveal;
     EventEmitter.emit("getAnim", animInfo);
   };
     render(){
