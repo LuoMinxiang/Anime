@@ -1,6 +1,13 @@
 import React from 'react'
 import EventEmitter from '../Utils/EventEmitter'
 import LayoutSetter from '../LayoutSetter/LayoutSetter.js'
+import Dialog from '@material-ui/core/Dialog';
+import DialogActions from '@material-ui/core/DialogActions';
+import DialogContent from '@material-ui/core/DialogContent';
+import DialogContentText from '@material-ui/core/DialogContentText';
+import DialogTitle from '@material-ui/core/DialogTitle';
+import Button from '@material-ui/core/Button';
+import { ExploreOffOutlined } from '@material-ui/icons';
 
 //画布组件
 
@@ -18,15 +25,25 @@ class WebCanvas extends React.Component{
           setterContentArray : [],
 
           //按编号排列的setter动效信息集合
-          setterAniInfoArray : []
+          setterAniInfoArray : [],
+
+          //是否打开提示框
+          open : false
         };
+
+        this.isChangeSettingMode = false;
+        //常变动效设置模式下将要切换的选中组件
+        this.keyToBeSelected = null;
+
         this.handleSetterClick = this.handleSetterClick.bind(this);
         this.handleCanvasClick = this.handleCanvasClick.bind(this);
         this.handleKeyDown = this.handleKeyDown.bind(this);
+        this.handleSelectAnywayClose = this.handleSelectAnywayClose.bind(this);
+        this.handleSaveClose = this.handleSaveClose.bind(this);
     }
     componentDidMount(){
       //新增布局组件函数
-        this.emitter = EventEmitter.addListener("ClickedAddLayoutSetter",(msg) => {
+        this.emitter1 = EventEmitter.addListener("ClickedAddLayoutSetter",(msg) => {
             // add a LayoutSetter on click
             let arr = [...this.state.LayoutSetterArray];
             arr.push(1);
@@ -39,7 +56,12 @@ class WebCanvas extends React.Component{
             //初始化动效设置数据
             let animeInfoArray = [...this.state.setterAniInfoArray];
             animeInfoArray.push({
-              reveal : ""
+              //出现方式
+              reveal : "",
+              //常变动效内容/样式数组
+              changingContentArr : [],
+              //常变动效定时器
+              changingInterval : 0
             });
             this.setState({
               setterAniInfoArray : animeInfoArray
@@ -47,31 +69,37 @@ class WebCanvas extends React.Component{
         })
 
         //改变选中布局组件颜色函数
-        this.emitter = EventEmitter.addListener("SelectedSetterColorChanged",(msg) => {
-            // change the color of the selected layout setter
-            let colorArr = [...this.state.setterColorArray];
-            colorArr[this.state.activeKey] = msg;
-            this.setState({
-              setterColorArray : colorArr
-            })
+        this.emitter2 = EventEmitter.addListener("SelectedSetterColorChanged",(msg) => {
+          if(this.isChangeSettingMode === false){
+              //只有不在常变动效设置模式下时才能改变setter的颜色
+              // change the color of the selected layout setter
+              let colorArr = [...this.state.setterColorArray];
+              colorArr[this.state.activeKey] = msg;
+              this.setState({
+                setterColorArray : colorArr
+              })
+          }
+            
         })
 
         //改变选中布局组件内容函数
-        this.emitter = EventEmitter.addListener("setSelectedSetterContent",(msg)=>{
-          //按了富文本编辑器的ok之后设置setter中的内容
-          let contentArray = [...this.state.setterContentArray];
-          contentArray[this.state.activeKey] = msg;
-          this.setState({
-            setterContentArray : contentArray
-          })
+        this.emitter3 = EventEmitter.addListener("setSelectedSetterContent",(msg)=>{
+          if(this.isChangeSettingMode === false){
+            //按了富文本编辑器的ok之后设置setter中的内容
+            let contentArray = [...this.state.setterContentArray];
+            contentArray[this.state.activeKey] = msg;
+            this.setState({
+              setterContentArray : contentArray
+            })
+          }
+          
         })
 
         //监听删除键，将选中的setter删除
         document.addEventListener("keydown", this.handleKeyDown);
 
         //设置选中布局组件的动效
-        this.emitter = EventEmitter.addListener("getAnim",(msg)=>{
-          //alert("getAnim!!! msg.reveal = " + msg.reveal);
+        this.emitter4 = EventEmitter.addListener("getAnim",(msg)=>{
           //在动效设置区选好了动效后设置setter中的内容
           if(this.state.activeKey != null){
             let animeInfoArray = [...this.state.setterAniInfoArray];
@@ -79,8 +107,12 @@ class WebCanvas extends React.Component{
             this.setState({
               setterAniInfoArray : animeInfoArray
             })
-            //演示加上的动效：将这个
           }
+        })
+
+        //开始/结束设置常变动效
+        this.emitter5 = EventEmitter.addListener("isChangingSettingOn",(isExpanded) => {
+          this.isChangeSettingMode = isExpanded;
         })
     }
     canvasStyle = {
@@ -89,17 +121,50 @@ class WebCanvas extends React.Component{
     };
     handleCanvasClick(){
         //点击非布局组件的画布部分时取消对任何组件的选中
-        this.activeKey = null;
-        this.setState({activeKey : null})
+        //在设置常变动效模式下不能取消选中
+          if(!this.isChangeSettingMode){
+            //不在修改常变动效模式：能取消选中
+            this.setState({activeKey : null});
+        }
     }
     handleSetterClick(key,e){
-      //点击布局组件时选中该组件
-      this.activeKey = key;
-      this.setState({activeKey : key});
+      if(this.state.activeKey !== null && key !== this.state.activeKey && this.isChangeSettingMode){        
+        //切换选中组件并且当前处于常变动效设置模式：跳出对话框提示如果切换会丢失未应用的修改
+        this.setState({open : true});
+        this.keyToBeSelected = key;
+
+        //阻止事件冒泡（子组件直接处理事件，父组件不会再处理事件），防止触发画布部分的点击事件
+        e.cancelBubble = true;
+        e.stopPropagation();
+      }else{
+        //点击布局组件时选中该组件
+        this.setState({activeKey : key});
+        //阻止事件冒泡（子组件直接处理事件，父组件不会再处理事件），防止触发画布部分的点击事件
+        e.cancelBubble = true;
+        e.stopPropagation();
+      }
+      
+    }
+
+    handleSelectAnywayClose(e){
+      //关闭对话框并切换选中组件
+      this.setState({open : false});
+      this.setState({activeKey : this.keyToBeSelected});
+      //对话框也在画布上！所以也要阻止事件冒泡
       //阻止事件冒泡（子组件直接处理事件，父组件不会再处理事件），防止触发画布部分的点击事件
       e.cancelBubble = true;
       e.stopPropagation();
     }
+
+    handleSaveClose(e){
+      //关闭对话框并不切换选中组件
+      this.setState({open : false});
+      //对话框也在画布上！所以也要阻止事件冒泡
+      //阻止事件冒泡（子组件直接处理事件，父组件不会再处理事件），防止触发画布部分的点击事件
+      e.cancelBubble = true;
+      e.stopPropagation();
+    }
+
     handleKeyDown(e){
       //监听键盘
         switch(e.keyCode){
@@ -110,17 +175,23 @@ class WebCanvas extends React.Component{
               let setterArr = [...this.state.LayoutSetterArray];
               let colorSetterArr = [...this.state.setterColorArray];
               let contentSetterArr = [...this.state.setterContentArray];
+              let animeSetterArr = [...this.state.setterAniInfoArray];
               //从setter信息数组中删除该setter
               delete setterArr[this.state.activeKey];
               //从setter颜色数组中删除该setter
               delete colorSetterArr[this.state.activeKey];
               //从setter内容数组中删除该setter
               delete contentSetterArr[this.state.activeKey];
+              //从setter动效数组中删除该setter
+              delete animeSetterArr[this.state.activeKey];
               this.setState({
                 LayoutSetterArray : setterArr,
                 setterColorArray : colorSetterArr,
-                setterContentArray : contentSetterArr
+                setterContentArray : contentSetterArr,
+                setterAniInfoArray : animeSetterArr
               })
+              //广播被删除的setter的索引
+              EventEmitter.emit("SelectedSetterDeleted", this.state.activeKey);
             this.state.activeKey = null;
           }
             break;
@@ -131,7 +202,6 @@ class WebCanvas extends React.Component{
     render(){
    //根据setter的编号值取出指定setter的颜色
     const getSelectedSetterColor = (index) => {
-      
       return this.state.setterColorArray[index];
     }
     //获取当前被选中的setter
@@ -154,6 +224,29 @@ class WebCanvas extends React.Component{
                   animeInfo={this.state.setterAniInfoArray[index]}>
               </LayoutSetter>
             </div>)}
+            <Dialog
+          open={this.state.open}
+          keepMounted
+          onClose={this.handleDialogClose}
+          aria-labelledby="alert-dialog-slide-title"
+          aria-describedby="alert-dialog-slide-description"
+        >
+          <DialogTitle id="alert-dialog-slide-title">{"Set Change Content"}</DialogTitle>
+          <DialogContent>
+            <DialogContentText id="alert-dialog-slide-description">
+              The changes you made to the current selected setter has not been applied yet.
+              If you select another setter or cancel selecting, those changes won't be saved.
+            </DialogContentText>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={(e) => this.handleSelectAnywayClose(e)} color="primary">
+              I don't care. Select/Cancel select anyway
+            </Button>
+            <Button onClick={(e) => this.handleSaveClose(e)} color="primary">
+              Go back and save
+            </Button>
+          </DialogActions>
+        </Dialog> 
         </div>);
     }
 }

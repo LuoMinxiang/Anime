@@ -33,27 +33,83 @@
       {
         "totalN": 2,
         "index": 0,
-        "width": "551px",
-        "height": "153px",
-        "x": 317,
-        "y": 141,
-        "color": "rgba(245,166,35,1)",
-        "content": "\n<h2 style=\"text-align: center;\">\n  TinyMCE provides a <span style=\"text-decoration: underline;\">full-featured</span> rich text editing experience, and a featherweight download.\n</h2>\n<p style=\"text-align: center;\">\n  <strong><span style=\"font-size: 14pt;\"><span style=\"color: #7e8c8d; font-weight: 600;\">No matter what you're building, TinyMCE has got you covered.</span></span></strong>\n</p>",
-        "animInfo": {
-          "reveal": "Fade"
+        "width": 320,
+        "height": 200,
+        "x": 113,
+        "y": 81,
+        "color": {
+          "r": 245,
+          "g": 166,
+          "b": 35,
+          "a": 1
+        },
+        "content": "<p style=\"text-align: center;\"><strong>Hello World</strong></p>",
+        "animeInfo": {
+          "reveal": "Fade",
+          "changingContentArr": [
+            {
+              "name": "Text0",
+              "activeKeyColor": {
+                "r": 245,
+                "g": 166,
+                "b": 35,
+                "a": 1
+              },
+              "activeKeyContent": "<p style=\"text-align: center;\"><strong>Hello World</strong></p>"
+            },
+            {
+              "name": "Content1",
+              "activeKeyColor": {
+                "r": 80,
+                "g": 227,
+                "b": 194,
+                "a": 1
+              },
+              "activeKeyContent": "<p style=\"text-align: center;\"><strong>Hello World</strong></p>"
+            }
+          ],
+          "changingInterval": 13
         }
       },
       {
         "totalN": 2,
         "index": 1,
-        "width": "272px",
-        "height": "435px",
-        "x": 0,
-        "y": 0,
-        "color": "rgba(80,227,194,1)",
-        "content": "\n<h2 style=\"text-align: center;\">\n  TinyMCE provides a <span style=\"text-decoration: underline;\">full-featured</span> rich text editing experience, and a featherweight download.\n</h2>\n<p style=\"text-align: center;\">\n  <strong><span style=\"font-size: 14pt;\"><span style=\"color: #7e8c8d; font-weight: 600;\">No matter what you're building, TinyMCE has got you covered.</span></span></strong>\n</p>",
-        "animInfo": {
-          "reveal": "Zoom"
+        "width": 320,
+        "height": 200,
+        "x": 373,
+        "y": 189,
+        "color": {
+          "r": 208,
+          "g": 2,
+          "b": 27,
+          "a": 1
+        },
+        "content": "<p style=\"text-align: center;\"><strong>Hello World</strong></p>",
+        "animeInfo": {
+          "reveal": "Zoom",
+          "changingContentArr": [
+            {
+              "name": "Text0",
+              "activeKeyColor": {
+                "r": 208,
+                "g": 2,
+                "b": 27,
+                "a": 1
+              },
+              "activeKeyContent": "<p style=\"text-align: center;\"><strong>Hello World</strong></p>"
+            },
+            {
+              "name": "Content1",
+              "activeKeyColor": {
+                "r": 74,
+                "g": 144,
+                "b": 226,
+                "a": 1
+              },
+              "activeKeyContent": "<p style=\"text-align: center;\"><strong>Hello World</strong></p>"
+            }
+          ],
+          "changingInterval": 22
         }
       }
     ]

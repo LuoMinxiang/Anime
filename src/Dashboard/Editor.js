@@ -19,13 +19,17 @@ class TinymceEditor extends React.Component{
     constructor(props) {
         super(props);
         this.state = {
-          data: sampleContent
+          //如果传入的文本不为空就将初始文本设置为传入的文本，否则初始的文本是sampleContent
+          data: this.props.text || sampleContent
         };
       }
     
       //在富文本编辑器内容改变时，使用改变的内容修改state，引起重新绘制
       handleChange(data) {
         this.setState({ data });
+        if (this.props.onTextChanged) {
+          this.props.onTextChanged(data);
+        }
       }
     
       render() {

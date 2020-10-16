@@ -12,14 +12,34 @@ import Tabbar from './Tabbar'
 
 //左侧设置面板
 
+//Tabbar的context，用于共享当前选中布局组件
+const ActiveKeyInfoContext = React.createContext(null);
 class ListMenu extends React.Component{
   constructor(props){
     super(props);
     this.state = {
       //显示还是隐藏setter的颜色/内容/动效设置面板（Tabbar）：false为隐藏，true为显示
-      addBtnDrop : false
+      addBtnDrop : false,
+      activeKeyInfo : null
     }
     this.handleClick = this.handleClick.bind(this);
+    //this.activeKeyInfo = {};
+  }
+
+  componentDidMount(){
+    this.emitter1 = EventEmitter.addListener("activeKeyInfo",(msg) => {
+      if(msg !== null){
+        //this.activeKeyInfo = msg;
+      this.setState({activeKeyInfo : msg},()=>{
+        //alert("listItem - after setting state : activeKeyInfo.totalN = " + this.state.activeKeyInfo.totalN);
+      });
+      //alert("listItem : activeKeyInfo.totalN = " + this.state.activeKeyInfo.totalN);
+      //alert("ListItem : msg.totalN = " + msg.totalN);
+    }else{
+      this.setState({activeKeyInfo : null});
+    }
+    });
+      
   }
 
   //添加setter按钮的回调函数：点击后通知WebCanvas，添加一个空白的setter
@@ -44,7 +64,9 @@ class ListMenu extends React.Component{
     </ListItem>
     {this.state.addBtnDrop?
     <div style={this.tabStyle}>
-      <Tabbar/>
+      <ActiveKeyInfoContext.Provider value={this.state.activeKeyInfo}>
+        <Tabbar anime={true}/>
+      </ActiveKeyInfoContext.Provider>
     </div>
       :null}
     <ListItem button>
@@ -69,4 +91,4 @@ class ListMenu extends React.Component{
     );
   }
 }
-export default ListMenu;
+export { ListMenu, ActiveKeyInfoContext };

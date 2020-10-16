@@ -15,7 +15,7 @@ import Paper from '@material-ui/core/Paper';
 import UILink from '@material-ui/core/Link';
 import MenuIcon from '@material-ui/icons/Menu';
 import ChevronLeftIcon from '@material-ui/icons/ChevronLeft';
-import ListMenu from './listItems';
+import { ListMenu } from './listItems';
 import WebCanvas from '../WebCanvas/WebCanvas';
 import Button from '@material-ui/core/Button';
 
