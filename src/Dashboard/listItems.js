@@ -23,19 +23,16 @@ class ListMenu extends React.Component{
       activeKeyInfo : null
     }
     this.handleClick = this.handleClick.bind(this);
-    //this.activeKeyInfo = {};
   }
 
   componentDidMount(){
     this.emitter1 = EventEmitter.addListener("activeKeyInfo",(msg) => {
       if(msg !== null){
-        //this.activeKeyInfo = msg;
+        //有选中的setter
       this.setState({activeKeyInfo : msg},()=>{
-        //alert("listItem - after setting state : activeKeyInfo.totalN = " + this.state.activeKeyInfo.totalN);
       });
-      //alert("listItem : activeKeyInfo.totalN = " + this.state.activeKeyInfo.totalN);
-      //alert("ListItem : msg.totalN = " + msg.totalN);
     }else{
+      //没有选中的setter，将选中setter信息设置为空
       this.setState({activeKeyInfo : null});
     }
     });

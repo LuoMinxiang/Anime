@@ -7,6 +7,7 @@ import FormControl from '@material-ui/core/FormControl';
 import Select from '@material-ui/core/Select';
 import EventEmitter from '../Utils/EventEmitter'
 import ControlledAccordions from './ChangeSetter'
+import TrailSetter from './TrailSetter'
 import { ActiveKeyInfoContext } from './listItems'
 
 //Tabbar中动效设置面板
@@ -20,11 +21,26 @@ class TextAnimPanel extends React.Component{
         this.animInfo = {
             reveal : "",
             changingContentArr : [],
-            changingInterval : 0
+            changingInterval : 0,
+            trailingContentArr : [],
+            trailingInterval : 0,
+            trailerWidth : 0,
+            trailerHeight : 0,
         }
+        //画布因为只有一个所以直接在动效设置面板中维护即可。TODO - 初始化的时候从数据库中读出画布动效，然后广播给画布
+        this.canvasAnimInfo = {
+            trailingContentArr : [],
+            trailingInterval : 0,
+            trailerWidth : 0,
+            trailerHeight : 0,
+        }
+
+        //当前选中的setter索引：默认为选中画布
+        this.activeKeyIndex = null;
 
         //函数绑定
         this.handleChangingSettingFinished = this.handleChangingSettingFinished.bind(this);
+        this.handleTrailingSettingFinished = this.handleTrailingSettingFinished.bind(this);
     }
     
     //常变动效设置完成时调用，将设置好的常变动效数据放入常变动效数据结构中
@@ -34,6 +50,46 @@ class TextAnimPanel extends React.Component{
         //广播动效信息对象
         EventEmitter.emit("getAnim", this.animInfo);
     }
+
+    //跟随动效设置完成时调用，将设置好的常跟随效数据放入跟随动效数据结构中
+    handleTrailingSettingFinished(contentInfoArr, interval, trailerWidth, trailerHeight){
+        if(this.activeKeyIndex !== null){
+            //局部跟随
+            this.animInfo.trailingContentArr = [...contentInfoArr];
+            this.animInfo.trailingInterval = interval;
+            this.animInfo.trailerWidth = trailerWidth;
+            this.animInfo.trailerHeight = trailerHeight;
+            //广播动效信息对象：在webCanvas中如果有选中的setter就直接修改该setter的animInfo值；如果没有就什么都不干
+            EventEmitter.emit("getAnim", this.animInfo);
+        }else{
+            //全局跟随
+            this.canvasAnimInfo.trailingContentArr = [...contentInfoArr];
+            this.canvasAnimInfo.trailingInterval = interval;
+            this.canvasAnimInfo.trailerWidth = trailerWidth;
+            this.canvasAnimInfo.trailerHeight = trailerHeight;
+            //广播全局跟随信息对象：TODO - 在webCanvas中收到广播后自己设置
+            EventEmitter.emit("getCanvasAnim", this.canvasAnimInfo);
+
+            //将画布跟随动效信息上传至数据库
+            const body = JSON.stringify(this.canvasAnimInfo);
+            //json-server测试接口
+            fetch('http://127.0.0.1:3000/canvasInfo',{
+                method:'post',
+                mode:'cors',
+                headers:{
+                    'Content-Type': 'application/json;charset=UTF-8',
+                    'Accept':'application/json, text/plain'
+                },
+                body: body
+            })
+            .then(res => res.json())
+            .then(data => {
+                console.log(data);
+            })
+            .catch(e => console.log('错误:', e))
+   }
+        }
+        
   
     //出现动效设置完成时调用
     handleChange = (event) => {
@@ -47,13 +103,15 @@ class TextAnimPanel extends React.Component{
           }
         return(
             <div>
-            <FormControl variant="outlined" style={formControl}>
+            <ActiveKeyInfoContext.Consumer>
+            {(activeKeyInfo) => {
+                this.animInfo.reveal = activeKeyInfo?activeKeyInfo.animeInfo.reveal:"";
+            return <FormControl variant="outlined" style={formControl}>
                 <InputLabel id="demo-simple-select-outlined-label">Reveal</InputLabel>
                 <Select
                     labelId="demo-simple-select-outlined-label"
                     id="demo-simple-select-outlined"
-                    //只有用defaultValue才能在选中的时候改变显示的值！
-                    defaultValue={this.animInfo.reveal}
+                    value={this.animInfo.reveal}
                     onChange={this.handleChange}
                     label="Reveal"
                 >
@@ -64,13 +122,51 @@ class TextAnimPanel extends React.Component{
                 <MenuItem value={"Zoom"}>Zoom</MenuItem>
                 </Select>
             </FormControl>
+            }}
+            </ActiveKeyInfoContext.Consumer>
             <br/>
             <ActiveKeyInfoContext.Consumer>
             {(activeKeyInfo) => {
+                if(activeKeyInfo){
+                    this.animInfo.changingContentArr = [...activeKeyInfo.animeInfo.changingContentArr];
+                    this.animInfo.changingInterval = activeKeyInfo.animeInfo.changingInterval;
+                }
                 return <ControlledAccordions handleSettingFinished={this.handleChangingSettingFinished} activeKeyInfo={activeKeyInfo}></ControlledAccordions>
             }}
             </ActiveKeyInfoContext.Consumer>
-            
+            <ActiveKeyInfoContext.Consumer>
+            {(activeKeyInfo) => {
+                if(activeKeyInfo){
+                    //选中setter
+                    this.animInfo.trailingContentArr = [...activeKeyInfo.animeInfo.trailingContentArr];
+                    this.animInfo.trailingInterval = activeKeyInfo.animeInfo.trailingInterval;
+                    this.animInfo.trailerWidth = activeKeyInfo.animeInfo.trailerWidth;
+                    this.animInfo.trailerHeight = activeKeyInfo.animeInfo.trailerHeight;
+
+                    this.activeKeyIndex = activeKeyInfo.index;
+                    return <TrailSetter 
+                        handleSettingFinished={this.handleTrailingSettingFinished} 
+                        index={activeKeyInfo.index}
+                        trailerHeight={activeKeyInfo.animeInfo.trailerHeight?activeKeyInfo.animeInfo.trailerHeight:100}
+                        trailerWidth={activeKeyInfo.animeInfo.trailerWidth?activeKeyInfo.animeInfo.trailerWidth:100} 
+                        trailingContentArr={activeKeyInfo.animeInfo.trailingContentArr?activeKeyInfo.animeInfo.trailingContentArr:[]}     
+                        trailingInterval={activeKeyInfo.animeInfo.trailingInterval?activeKeyInfo.animeInfo.trailingInterval:0}
+                        ></TrailSetter>
+                }else{
+                    //选中画布
+                    this.activeKeyIndex = null;
+                    return <TrailSetter 
+                        handleSettingFinished={this.handleTrailingSettingFinished} 
+                        index={null}
+                        trailerHeight={this.canvasAnimInfo.trailerHeight?this.canvasAnimInfo.trailerHeight:100}
+                        trailerWidth={this.canvasAnimInfo.trailerWidth?this.canvasAnimInfo.trailerWidth:100}  
+                        trailingContentArr={this.canvasAnimInfo.trailingContentArr?this.canvasAnimInfo.trailingContentArr:[]}     
+                        trailingInterval={this.canvasAnimInfo.trailingInterval?this.canvasAnimInfo.trailingInterval:0}                  
+                        ></TrailSetter>
+                }
+                
+            }}
+            </ActiveKeyInfoContext.Consumer>
             </div>
         );
     }

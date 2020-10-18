@@ -14,6 +14,7 @@ class Tabbar extends React.Component{
   constructor(props){
     super(props);
     this.isChangeSettingMode = false;
+    this.isTrailSettingMode = false;
     this.state = {
       //当前选择的tab索引
       tabIndex : 0,
@@ -37,11 +38,16 @@ class Tabbar extends React.Component{
     this.emitter1 = EventEmitter.addListener("isChangingSettingOn",(isExpanded) => {
       this.isChangeSettingMode = isExpanded;
     })
+    //监听是否处于跟随特效设置模式
+    this.emitter2 = EventEmitter.addListener("isTrailingSettingOn",(isExpanded) => {
+      this.isTrailSettingMode = isExpanded;
+    })
   }
+    
 
   //真正设置tab索引的切换：常变动效设置模式下（没保存）切换到其他tab要发出警告。其他时候点哪儿切换哪儿
   setTabIndex(index){
-    if(this.isChangeSettingMode && this.props.anime && index !== 2){
+    if((this.isChangeSettingMode || this.isTrailSettingMode) && this.props.anime && index !== 2){
       //常变动效设置模式下，切换tab发出警告
       this.setState({open : true});
       this.tabToBeChanged = index;
@@ -129,7 +135,7 @@ class Tabbar extends React.Component{
     <WarningDialog
       open={this.state.open}
       handleClose={this.handleDialogClose}
-      dialogContent="If you change tabs, all your editing on changing effect will be lost!"
+      dialogContent="If you change tabs, all your unsafed editing on animation effect will be lost!"
       agree="GO BACK AND SAVE"
       disagree="I DON'T CARE. CHANGE ANYWAY"
       handleDisagreeClose={this.handleDialogChooseChange}

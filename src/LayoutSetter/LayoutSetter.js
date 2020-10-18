@@ -4,6 +4,8 @@ import EventEmitter from '../Utils/EventEmitter'
 import Zoom from 'react-reveal/Zoom';
 import Fade from 'react-reveal/Fade';
 import {Color2Str} from '../Utils/Color2Str'
+import Trailer from '../Trailer/Trailer'
+import ReactDOM from 'react-dom'
 
 //布局组件
 
@@ -28,14 +30,26 @@ class LayoutSetter extends React.Component{
       //当前参数的计时器时间间隔值（用于判断传入参数是否发生改变）
       curPropsInterval : 0,
       //修改当前内容，用来调用render：）
-      curContent : this.props.data
+      curContent : this.props.data,
+
+      //跟随动效
+      //是否显示跟随
+      showTrailer : false,
+      //跟随组件的坐标
+      trailTop : 0,
+      trailLeft : 0,
     }
     //当前常变数组内容项索引
     this.contentIndex = 0;
+
+    //div的ref
+    this.divRef = null;
     
     //函数绑定
     this.handleContentChange = this.handleContentChange.bind(this);
     this.setTimer = this.setTimer.bind(this);
+    this.handleMouseMove = this.handleMouseMove.bind(this);
+    this.handleMouseOut = this.handleMouseOut.bind(this);
   }
 
   componentDidMount(){
@@ -82,7 +96,6 @@ class LayoutSetter extends React.Component{
      })
      .then(res => res.json())
      .then(data => {
-       console.log(data);
      })
      .catch(e => console.log('错误:', e))
   })
@@ -141,6 +154,28 @@ setTimer(){
   }
 }
 
+handleMouseMove(event){
+  //鼠标移动到画布内，出现鼠标跟随
+  //这里event.client指的是在整个屏幕中的坐标，不是以画布组件的左上角为原点，而是以屏幕左上角为原点
+  //故直接用event.client设置鼠标跟随位置，跟随组件会始终与鼠标差一个画布左上角到屏幕左上角的差值
+  //要想鼠标跟随控件直接跟随鼠标，必须用event.client减去画布左上角与屏幕左上角的差值作为鼠标跟随坐标
+  const boundingRect = ReactDOM.findDOMNode(this.divRef).getBoundingClientRect();
+  this.setState({
+      trailTop : (event.clientY - boundingRect.top),
+      trailLeft : (event.clientX - boundingRect.left)
+  })
+  this.setState({showTrailer : true});
+  //console.log("event.clientY : " + event.clientY + ", event.clientX : " + event.clientX)
+
+  //阻止事件冒泡（子组件直接处理事件，父组件不会再处理事件），在有setter的局部跟随区域内防止触发画布部分的跟随事件
+  event.cancelBubble = true;
+  event.stopPropagation();
+}
+
+handleMouseOut(){
+  this.setState({showTrailer : false});
+}
+
     render(){
       if(this.props.activeKey === this.props.index){
         //广播当前组件的信息
@@ -181,6 +216,18 @@ setTimer(){
         border: "dashed 2px red",
         background: setterColor
       }
+      const divStyle = {
+        height : "100%",
+        width : "100%",
+        //background : "green"
+      }
+
+      const trailInfo = {
+        trailingContentArr : this.props.animeInfo.trailingContentArr,
+        trailingInterval : this.props.animeInfo.trailingInterval,
+        trailerWidth : this.props.animeInfo.trailerWidth,
+        trailerHeight : this.props.animeInfo.trailerHeight
+      }
 
     //不带任何出现动效的布局组件
     this.basicComponent = 
@@ -196,8 +243,21 @@ setTimer(){
             ...position,
           });
       }}>
+        <Trailer
+              top={this.state.trailTop}
+              left={this.state.trailLeft}
+              trailInfo={trailInfo}
+              visibility={this.state.showTrailer}
+          ></Trailer>
         {/* div的内容必须是this.props.data，不然单一内容时手动修改setter内容无效 */}
-        <div  dangerouslySetInnerHTML={{__html:this.props.animeInfo.changingInterval?this.props.animeInfo.changingContentArr[this.contentIndex<this.props.animeInfo.changingContentArr.length?this.contentIndex:0].activeKeyContent:this.props.data}}></div>
+        <div  
+          dangerouslySetInnerHTML={{__html:this.props.animeInfo.changingInterval?this.props.animeInfo.changingContentArr[this.contentIndex<this.props.animeInfo.changingContentArr.length?this.contentIndex:0].activeKeyContent:this.props.data}}
+          style={divStyle}
+          onMouseMove={this.handleMouseMove}
+          onMouseOut={this.handleMouseOut}
+          ref={element => this.divRef = element}>
+          
+          </div>
       </Rnd>
     
     //加上出现动效后的布局组件
