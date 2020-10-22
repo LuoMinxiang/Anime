@@ -16,12 +16,11 @@ import Slide from '@material-ui/core/Slide';
 import Button from '@material-ui/core/Button';
 import Tooltip from '@material-ui/core/Tooltip';
 
-import InputSlider from './TimerSetter'
-import TrailingSettingTabbar from './TrailingSettingTabbar'
+import TextField from '@material-ui/core/TextField';
+import HoverSettingTabbar from './HoverSettingTabbar'
 import EventEmitter from '../Utils/EventEmitter'
-import { ActiveKeyInfoContext } from './listItems'
 import {Color2Str} from '../Utils/Color2Str'
-import TrailerSizeSetter from '../Trailer/TrailerSizeSetter'
+import {GetFirstNotNullKey} from '../Utils/GetFirstNotNullKey'
 
 //设置常变动效的设置面板
 
@@ -30,7 +29,7 @@ const Transition = React.forwardRef(function Transition(props, ref) {
     return <Slide direction="up" ref={ref} {...props} />;
   });
   
-class TrailSetter extends React.Component{
+class HoverSetter extends React.Component{
     constructor(props){
         super(props);
         this.state = {
@@ -42,17 +41,15 @@ class TrailSetter extends React.Component{
             selectedColor : "transparent",
             //对选中的一项内容设置的文字：初始值为空字符串 - 必须设置为state不然修改后不会引起render，colorPicker的值不会改变
             selectedText : "",
-            //跟随组件的宽高
-            trailerWidth : this.props.trailerWidth,
-            trailerHeight : this.props.trailerHeight,
 
-            //跟随内容/颜色数组：跟随组件内容初始值为空
+
+            //悬停出现内容/颜色数组：初始值为空
             contentInfoArr : [],
-            //跟随定时器时间间隔：0表示不定时
-            interval : 0,
+            //悬停缩放比例：大于1是放大，小于1是缩小
+            hoverScale : 1,
         }
 
-        //记录当前props传入的选中setter的索引值，默认为null（选中画布）
+        //记录当前props传入的选中setter的索引值，默认为null（选中画布）：用于判断是否切换setter
         this.curActiveIndex = null;
 
         //判断弹出设置窗口后是否修改了选中的内容项的颜色，只有修改了点击save才需要将设置的内容存入内容数组
@@ -66,14 +63,14 @@ class TrailSetter extends React.Component{
         this.settingContent = "Set the color and content of this trail content.";
         //函数绑定
         this.setDialogContent = this.setDialogContent.bind(this);
-        this.handleIntervalChange = this.handleIntervalChange.bind(this);
         this.handleColorChange = this.handleColorChange.bind(this);
         this.handleTextChange = this.handleTextChange.bind(this);
         this.handleSaveClose = this.handleSaveClose.bind(this);
         this.getChipStyleFromIndex = this.getChipStyleFromIndex.bind(this);
         this.resetColorText = this.resetColorText.bind(this);
-        this.setColorText = this.setColorText.bind(this);
-        this.handleTrailerSizeChange = this.handleTrailerSizeChange.bind(this);
+        this.handleScaleChange = this.handleScaleChange.bind(this);
+        this.handleHoverSetterSizeChange = this.handleHoverSetterSizeChange.bind(this);
+        this.handleHoverSetterPositionChange = this.handleHoverSetterPositionChange.bind(this);
 
         //选中要修改的常变动效内容项索引
         this.selectedContentIndex = null;
@@ -84,45 +81,37 @@ class TrailSetter extends React.Component{
             this.dialogContent = dialogContent;
     }
 
-    //初始化文字和颜色
+    //初始化文字和颜色：
+    //点击chip时将设置窗口中的颜色和文字初始值设置为点击chip的对应颜色和内容；
+    //添加chip时将设置窗口中的颜色和文字初始值设为透明和空字符串
+    //删除chip时将设置窗口中的颜色和文字初始值设为透明和空字符串
     resetColorText(){
-        //设置colorPicker和editor的初始值为选中内容的颜色和文字。如果是刚刚添加的chip就设置为透明和空字符串
-        let initialColor = "transparent";
-        let initialText = "";
-        if(this.state.contentInfoArr.length!==0){
-          //有跟随内容数组
-          //判断跟随内容项是否为空(删除后选中内容项下标置为0，但是0也删除了)，或跟随内容项下标是否为内容数组长度（刚刚添加还没来得及异步修改）
-          if(this.selectedContentIndex < this.state.contentInfoArr.length && this.state.contentInfoArr[this.selectedContentIndex] !== null && typeof(this.state.contentInfoArr[this.selectedContentIndex]) !== 'undefined'){
-            //但是有可能添加chip刚刚将初始值放进state的内容数组中还没来得及异步修改，此时也保持透明和空字符串
-            initialColor = this.state.contentInfoArr[this.selectedContentIndex].activeKeyColor;
-            initialText = this.state.contentInfoArr[this.selectedContentIndex].activeKeyContent;
+        //设置colorPicker和editor的初始值为选中内容的颜色和文字
+        /*
+        let color = "transparent";
+        let text = "";
+        if(this.state.contentInfoArr.length!==0 && this.selectedContentIndex){
+          //内容数组中有内容（只是内容可能为空）
+          //判断是否是点击chip：选中的chip下标是否小于内容数组长度且在内容数组中是否非空
+          if(this.selectedContentIndex < this.state.contentInfoArr.length && this.state.contentInfoArr.length[this.selectedContentIndex] !== null){
+            color = this.state.contentInfoArr.length[this.selectedContentIndex]
           }
         }
+        */
+        const contentInfo = this.state.contentInfoArr.length!==0?this.state.contentInfoArr[this.selectedContentIndex && this.selectedContentIndex<this.state.contentInfoArr.length? this.selectedContentIndex : 0]:null;
         this.setState({
-            //selectedColor : this.state.contentInfoArr.length!==0?this.state.contentInfoArr[this.selectedContentIndex && this.selectedContentIndex<this.state.contentInfoArr.length? this.selectedContentIndex : 0].activeKeyColor:"transparent",
-            //selectedText : this.state.contentInfoArr.length!==0?this.state.contentInfoArr[this.selectedContentIndex && this.selectedContentIndex<this.state.contentInfoArr.length? this.selectedContentIndex : 0].activeKeyContent:""
-            selectedColor : initialColor,
-            selectedText : initialText,
-        })
-    }
-    //设置颜色和文字
-    setColorText(color, text){
-        this.setState({
-            selectedColor : color,
-            selectedText : text
+            selectedColor : (contentInfo !== null && typeof(contentInfo) !== 'undefined')?contentInfo.activeKeyColor:"transparent",
+            selectedText : (contentInfo !== null && typeof(contentInfo) !== 'undefined')?contentInfo.activeKeyContent:"",
         })
     }
 
-    
-    //监听props（选中setter）的改变，并在改变时更新对应的动效内容数组和常变定时
+    //监听props（选中setter）的改变，并在改变时更新对应的动效内容数组
     componentDidUpdate (props, state) {
       if(this.props.index !== this.curActiveIndex){
         //切换选中
         this.setState({
-          contentInfoArr : this.props.trailingContentArr,
-          interval : this.props.trailingInterval,
-          trailerWidth : this.props.trailerWidth,
-          trailerHeight : this.props.trailerHeight,
+          contentInfoArr : this.props.hoverContentArr,
+          hoverScale : this.props.hoverScale,
         })
         this.curActiveIndex = this.props.index;
       }
@@ -133,12 +122,12 @@ class TrailSetter extends React.Component{
             //this.isWarningDialog = false;
             this.setDialogContent(this.settingContent);
             this.handleClickOpen();
-            //设置选中的常变内容项索引为被点击chip的索引值
+            //设置选中的跟随内容项索引为被点击chip的索引值
             this.selectedContentIndex = index;
             //初始化文字和颜色
             this.resetColorText();
             //广播打开常变动效设置模式
-            EventEmitter.emit("isTrailingSettingOn", true);
+            EventEmitter.emit("isHoverSettingOn", true);
           }
             
           //点击添加chip按钮添加
@@ -147,19 +136,22 @@ class TrailSetter extends React.Component{
             this.setDialogContent(this.settingContent);
             this.handleClickOpen();
             
-            //初始化新添加的内容项的文字和颜色：初始颜色是透明，初始文字是空字符串
+            //初始化新添加的悬停出现内容项的文字和颜色：初始颜色是透明，初始文字是空字符串
             let arr = [...this.state.contentInfoArr];
             const contentInfo = {} //this.state.contentInfoArr[0];
             contentInfo.name = 'Content' + this.state.contentInfoArr.length;
             contentInfo.activeKeyColor = "transparent";
             contentInfo.activeKeyContent = "";
-            //将新添加的内容项加入跟随内容数组
-            arr.push(contentInfo);
-            this.setState({contentInfoArr : arr});
             //将选中内容项的索引切换为新建内容项的索引
             this.selectedContentIndex = this.state.contentInfoArr.length;
+            //将新添加的内容项加入悬停出现内容数组
+            arr.push(contentInfo);
+            this.setState({contentInfoArr : arr});
+
              //初始化文字和颜色
              this.resetColorText();
+             //广播添加悬停出现组件
+            EventEmitter.emit("addHoverSetter");
             //广播打开跟随动效设置模式
             EventEmitter.emit("isTrailingSettingOn", true);
         }
@@ -168,7 +160,6 @@ class TrailSetter extends React.Component{
     handleDelete = (index) => () => {
       //从跟随内容数组中删除指定下标的内容项
       const arr = [...this.state.contentInfoArr];
-      //arr.splice(index, 1);
       delete arr[index];
       this.setState({contentInfoArr : arr});
       //将当前选中的内容项置为0
@@ -192,24 +183,22 @@ class TrailSetter extends React.Component{
       this.isTextChanged = false;
     };
 
-    //点击设置跟随动效按钮打开或收起设置面板时调用
+    //点击设置悬停动效按钮打开或收起设置面板时调用
     handleChange = (panel) => (event, isExpanded) => {
         this.setState({expanded : isExpanded ? panel : false});
-        //向LayoutSetter发送消息：进入常变动效设置模式，切换选中组件时提示保存修改否则丢失
-        EventEmitter.emit("isTrailingSettingOn", isExpanded);
+        //向LayoutSetter发送消息：进入悬停动效设置模式，切换选中组件时提示保存修改否则丢失
+        EventEmitter.emit("isHoverSettingOn", isExpanded);
       };
 
-    //点击apply（应用）按钮，将设置好的跟随动效应用在选中的setter或者全局上  
+    //点击apply（应用）按钮，将设置好的悬停动效应用在选中的setter上
     handleApplyClick = () => {
-      //调用TextAnimPanel传入的函数，设置TextAnimPanel的changingContentArr和changingInterval
-        this.props.handleSettingFinished(this.state.contentInfoArr, this.state.interval, this.state.trailerWidth, this.state.trailerHeight);
-        //广播常变动效设置模式关闭
-        EventEmitter.emit("isTrailingSettingOn", false);
-    }
-
-    //获取TimerSetter设置的interval值的方法
-    handleIntervalChange(interval){
-        this.setState({interval : interval});
+        if(this.props.handleSettingFinished){
+            //调用TextAnimPanel传入的函数，设置TextAnimPanel的changingContentArr和changingInterval
+            this.props.handleSettingFinished(this.state.contentInfoArr, this.state.hoverScale);
+            //广播常变动效设置模式关闭
+            EventEmitter.emit("isHoverSettingOn", false);
+        }
+      
     }
 
     //在colorPicker中设置指定序号内容的颜色
@@ -217,7 +206,6 @@ class TrailSetter extends React.Component{
         this.setState({
             selectedColor : color.rgb
         })
-      //this.selectedColor = color;
       this.isColorChanged = true;
 
     }
@@ -231,11 +219,9 @@ class TrailSetter extends React.Component{
       this.isTextChanged = true;
     }
 
-    handleTrailerSizeChange(e, direction, ref, d){
-        this.setState(state =>({
-            trailerWidth : state.trailerWidth + d.width,
-            trailerHeight : state.trailerHeight + d.height,
-        }))
+    handleScaleChange(event){
+        //alert("handleScaleChange!!! scale = " + event.target.value);
+        this.setState({hoverScale : event.target.value});
     }
 
     //点击保存设置好的颜色并关闭弹窗
@@ -273,6 +259,25 @@ class TrailSetter extends React.Component{
         width: "100%"
       }
     }
+
+    //设置hover出现组件宽高的组件设置完成的回调函数
+    handleHoverSetterSizeChange(e, direction, ref, d){
+         let arr = [...this.state.contentInfoArr];
+         const contentInfo = arr[this.selectedContentIndex];
+         contentInfo.width += d.width;
+         contentInfo.height += d.height;
+         this.setState({contentInfoArr : arr});
+    }
+
+    //设置hover出现组件位置的组件设置完成的回调函数
+    handleHoverSetterPositionChange(e, d){
+         let arr = [...this.state.contentInfoArr];
+         const contentInfo = arr[this.selectedContentIndex];
+         contentInfo.top = d.y;
+         contentInfo.left += d.x;
+         this.setState({contentInfoArr : arr});
+    }
+
 
   //下拉面板样式
   detailStyle = {
@@ -330,21 +335,31 @@ class TrailSetter extends React.Component{
             aria-controls="panel1bh-content"
             id="panel1bh-header"
           >
-            <Typography style={this.heading}>Trailing</Typography>
-            <Typography style={this.secondaryHeading}>Set trailing effect</Typography>
+            <Typography style={this.heading}>Hover</Typography>
+            <Typography style={this.secondaryHeading}>Set hover effect</Typography>
           </AccordionSummary>
           <AccordionDetails style={this.detailStyle}>
-              <TrailerSizeSetter 
-                onResizeStop={this.handleTrailerSizeChange} 
-                width={this.state.trailerWidth} 
-                height={this.state.trailerHeight}>
-              </TrailerSizeSetter>
-              <br/>
               <div>
-              <InputSlider interval={this.state.interval} handleIntervalChange={this.handleIntervalChange}></InputSlider>
+              <TextField
+                id="standard-number"
+                label="Number"
+                type="number"
+                onChange={this.handleScaleChange}
+                value={this.state.hoverScale}
+                inputProps={{
+                    step: 0.1,
+                    min: -10,
+                    max: 10,
+                    type: 'number',
+                  }}
+                InputLabelProps={{
+                    shrink: true,
+                }}
+            />
+              <br/>
               <br/>
               <div style={this.gridContainer}>
-          {this.state.contentInfoArr.map((item, index) =>  (typeof(item) === 'undefined' || item === null)?null:
+          {this.state.contentInfoArr.map((item, index) =>  typeof(item) === 'undefined' || item === null?null:
           <Tooltip title={item.name}>
               <Chip
               label={item.name}
@@ -384,14 +399,14 @@ class TrailSetter extends React.Component{
               {this.dialogContent}
             </DialogContentText>
             {this.isWarningDialog? null :
-                <TrailingSettingTabbar 
+                <HoverSettingTabbar 
                     style={this.tabStyle} 
                     color={this.state.selectedColor}
                     text={this.state.selectedText}
                     onColorChanged={this.handleColorChange}
                     onTextChanged={this.handleTextChange}
                     >
-                </TrailingSettingTabbar>}
+                </HoverSettingTabbar>}
           </DialogContent>
           <DialogActions>
             <Button onClick={this.handleClose} color="primary">
@@ -402,6 +417,7 @@ class TrailSetter extends React.Component{
             </Button>
           </DialogActions>
         </Dialog> 
+
       </div>
       );
   }
@@ -410,4 +426,4 @@ class TrailSetter extends React.Component{
 }
 
 
-export default TrailSetter;
+export default HoverSetter;

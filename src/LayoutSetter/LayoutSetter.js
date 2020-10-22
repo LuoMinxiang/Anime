@@ -4,6 +4,7 @@ import EventEmitter from '../Utils/EventEmitter'
 import Zoom from 'react-reveal/Zoom';
 import Fade from 'react-reveal/Fade';
 import {Color2Str} from '../Utils/Color2Str'
+import {GetFirstNotNullKey} from '../Utils/GetFirstNotNullKey'
 import Trailer from '../Trailer/Trailer'
 import ReactDOM from 'react-dom'
 
@@ -38,18 +39,30 @@ class LayoutSetter extends React.Component{
       //跟随组件的坐标
       trailTop : 0,
       trailLeft : 0,
+
     }
     //当前常变数组内容项索引
     this.contentIndex = 0;
+    //当前常变数组第一个非空内容索引：当常变内容数组全空时置为常变内容数组的长度
+    this.firstNotNullContentKey = 0;
 
     //div的ref
     this.divRef = null;
+
+    //缩放前的宽高：防止恢复时由于计算累计误差无法恢复宽高
+    this.originalWidth = this.state.width;
+    this.originalHeight = this.state.height;
+    //缩放前的位置：缩放应该是以中心点辐射性缩放，而不是保持左上角坐标不变缩放，所以位置也要表
+    this.originalX = this.state.x;
+    this.originalY = this.state.y;
     
     //函数绑定
     this.handleContentChange = this.handleContentChange.bind(this);
     this.setTimer = this.setTimer.bind(this);
     this.handleMouseMove = this.handleMouseMove.bind(this);
     this.handleMouseOut = this.handleMouseOut.bind(this);
+    this.handleMouseEnter = this.handleMouseEnter.bind(this);
+    this.handleMouseLeave = this.handleMouseLeave.bind(this);
   }
 
   componentDidMount(){
@@ -101,22 +114,49 @@ class LayoutSetter extends React.Component{
   })
 
   //接收到被删除setter的索引：totalSetter--，并从data中删除该索引的setter
-  this.emitter1 = EventEmitter.addListener("SelectedSetterDeleted",(index) => {
+  this.emitter2 = EventEmitter.addListener("SelectedSetterDeleted",(index) => {
     totalSetter--;
     if(typeof(data[index]!=='undefined')){
       delete data[index];
     }
+    EventEmitter.emit("activeKeyInfo", null);
   })
   
 }
 
 handleContentChange(){
-  this.contentIndex++;
-  if(this.contentIndex >= this.props.animeInfo.changingContentArr.length){
-    this.contentIndex = 0
-  }
+  if(this.contentIndex < this.props.animeInfo.changingContentArr.length){
+    //存在非空常变内容项：改变当前常变内容项
+    //由于内容数组更新时不调用componentDidUpdate，故不能在全空时即使将this.firstNotNullContentKey置为内容数组长度，可能造成计时器回调函数死循环
+    //防止死循环计数器：index+1时count+1，count到内容数组的长度时将index置为内容数组的长度并退出循环
+    let count = 0;
+    this.contentIndex++;
+    count++;
+    if(this.contentIndex >= this.props.animeInfo.changingContentArr.length){
+      this.contentIndex = 0
+    }
+    while(this.contentIndex < this.props.animeInfo.changingContentArr.length && this.props.animeInfo.changingContentArr[this.contentIndex] === null){
+      //跳过为空的内容项
+      this.contentIndex++;
+      count++;
+      if(this.contentIndex >= this.props.animeInfo.changingContentArr.length){
+        //递增出界时回到0
+        this.contentIndex = 0;
+      }
+      if(count >= this.props.animeInfo.changingContentArr.length){
+        this.contentIndex = this.props.animeInfo.changingContentArr.length;
+        break;
+      }
+    }
+}
+
+if(this.contentIndex === this.props.animeInfo.changingContentArr.length){
+  this.setState({curContent : null});
+}else{
   //用来调用render
   this.setState({curContent : this.props.animeInfo.changingContentArr[this.contentIndex].activeKeyContent});
+}
+  
 }
 
 componentDidUpdate(prevProps, prevState){
@@ -176,6 +216,44 @@ handleMouseOut(){
   this.setState({showTrailer : false});
 }
 
+//悬停回调函数
+handleMouseEnter(){
+  //缩放
+  if(this.props.activeKey !== this.props.index){
+    //没选中：只有没选中时才有悬停缩放的效果，否则不好拖拽
+    if(this.props.animeInfo.hoverScale !== 1){
+    this.originalHeight = this.state.height;
+    this.originalWidth = this.state.width;
+    this.originalX = this.state.x;
+    this.originalY = this.state.y;
+    this.setState(state => ({
+      height : (state.height) * this.props.animeInfo.hoverScale,
+      width : state.width * this.props.animeInfo.hoverScale,
+      x : state.x - (state.width * this.props.animeInfo.hoverScale - state.width) / 2,
+      y : state.y - (state.height * this.props.animeInfo.hoverScale - state.height) / 2,
+    }))
+  }
+  }
+  
+  this.props.handleMouseEnter(this.props.index);
+}
+
+//取消悬停回调函数
+handleMouseLeave(){
+  //恢复缩放
+    //选没选中都要恢复：有可能缩放后才选中
+    if(this.props.animeInfo.hoverScale !== 1){
+    this.setState({
+      height : this.originalHeight,
+      width : this.originalWidth,
+      x : this.originalX,
+      y : this.originalY
+    })
+  }
+  
+  this.props.handleMouseLeave();
+}
+
     render(){
       if(this.props.activeKey === this.props.index){
         //广播当前组件的信息
@@ -197,8 +275,29 @@ handleMouseOut(){
       }
 
 
+      //确定setter的颜色和文字
+      let contentBg = Color2Str(this.props.selectedSetterColor);
+      let contentText = this.props.data;
+      let contentArr = [];
+      let firstNotNullContentKey = 0;
+      if(this.props.animeInfo.changingInterval){
+         contentArr = this.props.animeInfo.changingContentArr;
+         firstNotNullContentKey = GetFirstNotNullKey(this.props.animeInfo.changingContentArr);
+         if(firstNotNullContentKey < contentArr.length){
+             //存在非空内容项：设置当前常变组件的颜色和文字
+             if(contentArr.length > 0 && this.contentIndex < contentArr.length && contentArr[this.contentIndex] !== null && typeof(contentArr[this.contentIndex]) !== 'undefined'){
+                 contentBg = Color2Str(contentArr[this.contentIndex].activeKeyColor);
+                 contentText = contentArr[this.contentIndex].activeKeyContent;
+             }else if(contentArr.length > 0 && this.contentIndex < contentArr.length && (contentArr[this.contentIndex] === null || typeof(contentArr[this.contentIndex]) === 'undefined')){
+                 contentBg = Color2Str(contentArr[firstNotNullContentKey].activeKeyColor);
+                 contentText = contentArr[firstNotNullContentKey].activeKeyContent;
+                 this.contentIndex = firstNotNullContentKey;
+             }
+         } 
+      }
+      
       //setter的颜色：常变数组种当前项的颜色，如果常变数组为空，则是静态样式的颜色
-      const setterColor = this.props.animeInfo.changingInterval? Color2Str(this.props.animeInfo.changingContentArr[this.contentIndex<this.props.animeInfo.changingContentArr.length?this.contentIndex:0].activeKeyColor) : Color2Str(this.props.selectedSetterColor);
+      const setterColor = contentBg;
       //未被选中的样式：灰色实线边框
       const layoutSetterStyle = {
         //完全按富文本文字显示，不默认水平和垂直居中
@@ -233,15 +332,41 @@ handleMouseOut(){
     this.basicComponent = 
       <Rnd 
         style={this.props.activeKey==this.props.index?activeLayoutSetterStyle:layoutSetterStyle}
-        size={{ width: this.state.width,  height: this.state.height }}
-        position={{ x: this.state.x, y: this.state.y }}
-        onDragStop={(e, d) => { this.setState({ x: d.x, y: d.y }) }}
-        onResizeStop={(e, direction, ref, delta, position) => {
+        size={{ width: this.props.activeKey === this.props.index?this.originalWidth:this.state.width,  height: this.props.activeKey === this.props.index?this.originalHeight:this.state.height }}
+        position={{ x: this.props.activeKey === this.props.index?this.originalX:this.state.x, y: this.props.activeKey === this.props.index?this.originalY:this.state.y }}
+        onDragStart={() => {
           this.setState({
-            width: ref.style.width,
-            height: ref.style.height,
+            x : this.originalX,
+            y : this.originalY
+          })
+        }}
+        onDragStop={(e, d) => { 
+          this.setState({ x: d.x, y: d.y });
+          this.originalX = d.x;
+          this.originalY = d.y; 
+        }}
+        onResizeStart={() => {
+          this.setState({
+            width : this.originalWidth,
+            height : this.originalHeight
+          })
+        }}
+        onResizeStop={(e, direction, ref, delta, position) => {
+          let setterWidth = ref.style.width;
+          let setterHeight = ref.style.height;
+          if(typeof(ref.style.width) == "string"){
+            let index = ref.style.width.lastIndexOf("p")
+            setterWidth =parseFloat(ref.style.width.substring(0,index));
+            index = ref.style.height.lastIndexOf("p");
+            setterHeight = parseFloat(ref.style.height.substring(0,index));
+        }
+          this.setState({
+            width: setterWidth,
+            height: setterHeight,
             ...position,
           });
+          this.originalHeight = setterHeight;
+          this.originalWidth = setterWidth;
       }}>
         <Trailer
               top={this.state.trailTop}
@@ -251,10 +376,12 @@ handleMouseOut(){
           ></Trailer>
         {/* div的内容必须是this.props.data，不然单一内容时手动修改setter内容无效 */}
         <div  
-          dangerouslySetInnerHTML={{__html:this.props.animeInfo.changingInterval?this.props.animeInfo.changingContentArr[this.contentIndex<this.props.animeInfo.changingContentArr.length?this.contentIndex:0].activeKeyContent:this.props.data}}
+          dangerouslySetInnerHTML={{__html:contentText}}
           style={divStyle}
           onMouseMove={this.handleMouseMove}
           onMouseOut={this.handleMouseOut}
+          onMouseEnter={this.handleMouseEnter}
+          onMouseLeave={this.handleMouseLeave}
           ref={element => this.divRef = element}>
           
           </div>

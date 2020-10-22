@@ -54,7 +54,8 @@ export default function InputSlider(props) {
       <Grid container spacing={2} alignItems="center">
         <Grid item xs>
           <Slider
-            value={typeof value === 'number' ? value : 0}
+            //value={typeof value === 'number' ? value : 0}
+            value={(props.interval !== null && typeof(props.interval) !== 'undefined')? props.interval : 0}
             onChange={handleSliderChange}
             aria-labelledby="input-slider"
             valueLabelDisplay="auto"
@@ -63,7 +64,8 @@ export default function InputSlider(props) {
         <Grid item>
           <Input
             className={classes.input}
-            value={value}
+            //value={value}
+            value={(props.interval !== null && typeof(props.interval) !== 'undefined')? props.interval : 0}
             margin="dense"
             onChange={handleInputChange}
             onBlur={handleBlur}

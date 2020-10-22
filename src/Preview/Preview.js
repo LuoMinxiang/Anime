@@ -2,6 +2,7 @@ import React from 'react'
 import Zoom from 'react-reveal/Zoom';
 import Fade from 'react-reveal/Fade';
 import {Color2Str} from '../Utils/Color2Str'
+import {GetFirstNotNullKey} from '../Utils/GetFirstNotNullKey'
 import Trailer from '../Trailer/Trailer'
 
 //预览界面
@@ -42,10 +43,20 @@ class Preview extends React.Component{
         };
 
         this.wwidth = 0;
-
+        
+        //被悬停的setter下标
+        this.hoveredSetterIndex = null;
+        //悬停缩放前的位置和宽高数组
+        this.originalWidth = null;
+        this.originalHeight = null;
+        this.originalX = null;
+        this.originalY = null;
+        
         this.handleChanging = this.handleChanging.bind(this);
         this.handleMouseMove = this.handleMouseMove.bind(this);
         this.handleMouseOut = this.handleMouseOut.bind(this);
+        this.handleMouseEnter = this.handleMouseEnter.bind(this);
+        this.handleMouseLeave = this.handleMouseLeave.bind(this);
     }
     
     componentDidMount(){
@@ -130,35 +141,87 @@ class Preview extends React.Component{
 
     //改变当前的常变动效内容项索引
     handleChanging = (setter) => () => {
-        let index = this.state.changingIndex;
-        index[setter.index]++;
-        if(index[setter.index] >= setter.animeInfo.changingContentArr.length){
-            index[setter.index] = 0;
+        if(this.state.changingIndex[setter.index] < setter.animeInfo.changingContentArr.length){
+            //存在非空常变内容项：改变当前常变内容项
+            //由于内容数组更新时不调用componentDidUpdate，故不能在全空时即使将this.firstNotNullContentKey置为内容数组长度，可能造成计时器回调函数死循环
+            //防止死循环计数器：index+1时count+1，count到内容数组的长度时将index置为内容数组的长度并退出循环
+            let count = 0;
+            let index = this.state.changingIndex[setter.index];
+            index++;
+            count++;
+            if(index >= setter.animeInfo.changingContentArr.length){
+                index = 0
+            }
+            while(index < setter.animeInfo.changingContentArr.length && setter.animeInfo.changingContentArr[index] === null){
+                //跳过为空的内容项
+                index++;
+                count++;
+                if(index >= setter.animeInfo.changingContentArr.length){
+                    //递增出界时回到0
+                    index = 0;
+                }
+                if(count >= setter.animeInfo.changingContentArr.length){
+                    index = setter.animeInfo.changingContentArr.length;
+                    break;
+                }
+            }
+            let indexArr = [...this.state.changingIndex];
+            indexArr[setter.index] = index;
+            this.setState({changingIndex : indexArr});
         }
-        this.setState({changingIndex : index});
+
     }
 
+    //跟随：鼠标进入并移动
     handleMouseMove = (index, event) =>  {
-        console.log("preview - setter - onmousemove");
-        //设置跟随组件信息
-        this.trailInfo.trailerHeight = this.state.setters[index].animeInfo.trailerHeight;
-        this.trailInfo.trailerWidth = this.state.setters[index].animeInfo.trailerWidth;
-        this.trailInfo.trailingContentArr = this.state.setters[index].animeInfo.trailingContentArr;
-        this.trailInfo.trailingInterval = this.state.setters[index].animeInfo.trailingInterval;
-        this.setState({
-            trailTop : (event.clientY),
-            trailLeft : (event.clientX),
-            showTrailer : true
-        })
-
-        //阻止事件冒泡（子组件直接处理事件，父组件不会再处理事件），在有setter的局部跟随区域内防止触发画布部分的跟随事件
-        event.cancelBubble = true;
-        event.stopPropagation();
+        if(this.state.setters[index].animeInfo.trailerHeight !== 0){
+            //设置跟随组件信息
+            this.trailInfo.trailerHeight = this.state.setters[index].animeInfo.trailerHeight;
+            this.trailInfo.trailerWidth = this.state.setters[index].animeInfo.trailerWidth;
+            this.trailInfo.trailingContentArr = this.state.setters[index].animeInfo.trailingContentArr;
+            this.trailInfo.trailingInterval = this.state.setters[index].animeInfo.trailingInterval;
+            this.setState({
+                trailTop : (event.clientY),
+                trailLeft : (event.clientX),
+                showTrailer : true
+            })
+            //阻止事件冒泡（子组件直接处理事件，父组件不会再处理事件），在有setter的局部跟随区域内防止触发画布部分的跟随事件
+            event.cancelBubble = true;
+            event.stopPropagation();
+        }
+        
     }
 
+    //跟随：鼠标退出
     handleMouseOut(){
         this.setState({showTrailer : false});
       }
+
+    //悬停：鼠标进入（不冒泡）
+    handleMouseEnter(index){
+        this.hoveredSetterIndex = index;
+        const setter = this.state.setters[index];
+        this.originalWidth = setter.width;
+        this.originalHeight = setter.height;
+        this.originalX = setter.x;
+        this.originalY = setter.y;
+        setter.x = setter.x - (setter.width * setter.animeInfo.hoverScale - setter.width) / 2;
+        setter.y = setter.y - (setter.height * setter.animeInfo.hoverScale - setter.height) / 2;
+        setter.height = setter.height * setter.animeInfo.hoverScale;
+        setter.width = setter.width * setter.animeInfo.hoverScale;
+        this.state.setters[index] = setter;
+    }
+
+    //悬停：鼠标退出（冒泡）
+    handleMouseLeave(index){
+        this.hoveredSetterIndex = null;
+        const setter = this.state.setters[index];
+        setter.x = this.originalX;
+        setter.y = this.originalY;
+        setter.height = this.originalHeight;
+        setter.width = this.originalWidth;
+        this.state.setters[index] = setter;
+    }
 
     render(){
         //所有setter的样式数组
@@ -171,7 +234,7 @@ class Preview extends React.Component{
         for(let i = 0;i < this.state.totalSetter;i++){
             const setter = this.state.setters[i];
             if(setter){
-                console.log(setter.content);
+                //console.log(setter.content);
                 //当setter的宽高值是带单位px的字符串时，去掉单位并转换为浮点数
             if(typeof(setter.width) == "string"){
                 let index = setter.width.lastIndexOf("p")
@@ -180,7 +243,30 @@ class Preview extends React.Component{
                 setter.height = parseFloat(setter.height.substring(0,index));
             }
 
-            const setterColor = setter.animeInfo.changingContentArr.length>0?Color2Str(setter.animeInfo.changingContentArr[this.state.changingIndex[setter.index]].activeKeyColor):Color2Str(setter.color);
+            //确定setter的颜色和文字：考虑全空的常变数组（长度不为0，全部删除）、空的常变数组内容项
+            let contentBg = Color2Str(setter.color);
+            let contentText = setter.content;
+            let contentArr = [];
+            let firstNotNullContentKey = 0;
+            if(setter.animeInfo.changingInterval){
+                contentArr = setter.animeInfo.changingContentArr;
+                firstNotNullContentKey = GetFirstNotNullKey(setter.animeInfo.changingContentArr);
+                if(firstNotNullContentKey < contentArr.length){
+                    //存在非空内容项：设置当前常变组件的颜色和文字
+                    if(contentArr.length > 0 && this.state.changingIndex[setter.index] < contentArr.length && contentArr[this.state.changingIndex[setter.index]] !== null){
+                        contentBg = Color2Str(contentArr[this.state.changingIndex[setter.index]].activeKeyColor);
+                        contentText = contentArr[this.state.changingIndex[setter.index]].activeKeyContent;
+                    }else if(contentArr.length > 0 && this.state.changingIndex[setter.index] < contentArr.length && contentArr[this.state.changingIndex[setter.index]] === null){
+                        contentBg = Color2Str(contentArr[firstNotNullContentKey].activeKeyColor);
+                        contentText = contentArr[firstNotNullContentKey].activeKeyContent;
+                        let indexArr = [...this.state.changingIndex];
+                        indexArr[setter.index] = firstNotNullContentKey;
+                        this.setState({changingIndex : indexArr});
+                    }
+                } 
+            }
+
+            const setterColor = contentBg;
             //设置该setter的样式
             const setterStyle = {         
                 width: setter.width * this.state.wrate,
@@ -197,13 +283,15 @@ class Preview extends React.Component{
         divStyles[setter.index] = setterStyle;
         //设置setter的动效并将setter放进数组里
         const reveal = setter.animeInfo.reveal;
-        const setterText = setter.animeInfo.changingContentArr.length>0?setter.animeInfo.changingContentArr[this.state.changingIndex[setter.index]].activeKeyContent:setter.content;
+        const setterText = contentText;
         const basicComponent = 
         <div 
             style={setterStyle} 
             dangerouslySetInnerHTML={{__html:setterText}}
             onMouseMove={(event) => this.handleMouseMove(setter.index, event)}
             onMouseOut={this.handleMouseOut}
+            onMouseEnter={() => this.handleMouseEnter(setter.index)}
+            onMouseLeave={() => this.handleMouseLeave(setter.index)}
         >            
         </div>
         let revealComponent = basicComponent;
@@ -224,6 +312,7 @@ class Preview extends React.Component{
             height : "100%",
             background : "red"
         }
+
         return (
             //按样式动态生成setter
             <div 
@@ -232,6 +321,25 @@ class Preview extends React.Component{
             {this.state.setters.map((item,index) => typeof(item) === undefined?null:
                 animatedSetters[index])
             }
+            {this.hoveredSetterIndex !== null? this.state.setters[this.hoveredSetterIndex].animeInfo.hoverContentArr.map(item => {
+                if(typeof(item) === 'undefined' || item === null){
+                    return null
+                }else{
+                    const hoverStyle = {
+                    width : item.width * this.state.wrate,
+                    height : item.height * this.state.wrate,
+                    position : "absolute",
+                    left: item.left * this.state.wrate,
+                    top: item.top * this.state.wrate,
+                    background : Color2Str(item.activeKeyColor),
+                }
+                return <div 
+                        style={hoverStyle}
+                        dangerouslySetInnerHTML={{__html: item.activeKeyContent}}
+                ></div>
+                }
+                
+            }):null}
             <Trailer
                     top={this.state.trailTop}
                     left={this.state.trailLeft}

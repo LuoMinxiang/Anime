@@ -9,6 +9,7 @@ import EventEmitter from '../Utils/EventEmitter'
 import ControlledAccordions from './ChangeSetter'
 import TrailSetter from './TrailSetter'
 import { ActiveKeyInfoContext } from './listItems'
+import HoverSetter from './HoverSetter'
 
 //Tabbar中动效设置面板
 
@@ -19,13 +20,23 @@ class TextAnimPanel extends React.Component{
             revealFade : false
         }
         this.animInfo = {
+            //出现动效类型
             reveal : "",
+            //常变内容数组
             changingContentArr : [],
+            //常变定时器时间间隔
             changingInterval : 0,
+            //跟随内容数组
             trailingContentArr : [],
+            //跟随定时器时间间隔
             trailingInterval : 0,
+            //跟随组件宽高
             trailerWidth : 0,
             trailerHeight : 0,
+            //悬停缩放比例：大于1是放大，小于1是缩小
+            hoverScale : 1,
+            //悬停出现内容数组
+            hoverContentArr : []
         }
         //画布因为只有一个所以直接在动效设置面板中维护即可。TODO - 初始化的时候从数据库中读出画布动效，然后广播给画布
         this.canvasAnimInfo = {
@@ -41,6 +52,7 @@ class TextAnimPanel extends React.Component{
         //函数绑定
         this.handleChangingSettingFinished = this.handleChangingSettingFinished.bind(this);
         this.handleTrailingSettingFinished = this.handleTrailingSettingFinished.bind(this);
+        this.handleHoverSettingFinished = this.handleHoverSettingFinished.bind(this);
     }
     
     //常变动效设置完成时调用，将设置好的常变动效数据放入常变动效数据结构中
@@ -84,11 +96,19 @@ class TextAnimPanel extends React.Component{
             })
             .then(res => res.json())
             .then(data => {
-                console.log(data);
+                //console.log(data);
             })
             .catch(e => console.log('错误:', e))
    }
         }
+
+    //悬停动效设置完成时调用，将设置好的悬停动效数据放入悬停动效数据结构中
+    handleHoverSettingFinished(contentInfoArr, scale){
+        this.animInfo.hoverContentArr = [...contentInfoArr];
+        this.animInfo.hoverScale = scale;
+        //广播动效信息对象
+        EventEmitter.emit("getAnim", this.animInfo);
+    }
         
   
     //出现动效设置完成时调用
@@ -163,6 +183,27 @@ class TextAnimPanel extends React.Component{
                         trailingContentArr={this.canvasAnimInfo.trailingContentArr?this.canvasAnimInfo.trailingContentArr:[]}     
                         trailingInterval={this.canvasAnimInfo.trailingInterval?this.canvasAnimInfo.trailingInterval:0}                  
                         ></TrailSetter>
+                }
+                
+            }}
+            </ActiveKeyInfoContext.Consumer>
+            <ActiveKeyInfoContext.Consumer>
+            {(activeKeyInfo) => {
+                if(activeKeyInfo){
+                    this.animInfo.hoverContentArr = [...activeKeyInfo.animeInfo.hoverContentArr];
+                    this.animInfo.hoverScale = activeKeyInfo.animeInfo.hoverScale;
+                    return <HoverSetter
+                                handleSettingFinished={this.handleHoverSettingFinished}
+                                index={activeKeyInfo.index}
+                                hoverScale={this.animInfo.hoverScale}
+                                hoverContentArr={this.animInfo.hoverContentArr}></HoverSetter>
+                }else{
+                    //没有选中的setter
+                    return <HoverSetter
+                            handleSettingFinished={null}
+                            index={null}
+                            hoverScale={1}
+                            hoverContentArr={[]}></HoverSetter>
                 }
                 
             }}

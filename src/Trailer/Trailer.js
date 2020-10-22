@@ -1,5 +1,6 @@
 import React from 'react'
 import {Color2Str} from '../Utils/Color2Str'
+import {GetFirstNotNullKey} from '../Utils/GetFirstNotNullKey'
 
 //跟随组件
 
@@ -41,9 +42,7 @@ class Trailer extends React.Component{
         })
         //重新设置定时器
         this.setTimer();
-        }
-
-        
+        }        
       }
       
 
@@ -64,12 +63,36 @@ class Trailer extends React.Component{
 
     handleIndexChange(){
         //定时器回调函数：循环递增跟随组件当前内容项索引
-        let index = this.state.index;
-        index++;
-        if(index >= (this.props.trailInfo?this.props.trailInfo.trailingContentArr:[]).length){
-            index = 0;
-        }
-        this.setState({index : index});
+        if(this.props.trailInfo){
+            if(this.state.index < this.props.trailInfo.trailingContentArr.length){
+                //还有非空的内容项：递增this.state.index
+                let index = this.state.index;
+                //由于内容数组更新时不调用componentDidUpdate，故不能在全空时即使将this.firstNotNullContentKey置为内容数组长度，可能造成计时器回调函数死循环
+                //防止死循环计数器：index+1时count+1，count到内容数组的长度时将index置为内容数组的长度并退出循环
+                let count = 0;
+                index++;
+                count++;
+                if(index >= this.props.trailInfo.trailingContentArr.length){
+                    //递增出界时回到0
+                    index = 0;
+                }
+                while(index < this.props.trailInfo.trailingContentArr.length && this.props.trailInfo.trailingContentArr[index] === null){
+                    //跳过为空的内容项
+                    index++;
+                    count++
+                    if(index >= this.props.trailInfo.trailingContentArr.length){
+                        //递增出界时回到0
+                        index = 0;
+                    }
+                    if(count >= this.props.trailInfo.trailingContentArr.length){
+                        index = this.props.trailInfo.trailingContentArr.length;
+                        break;
+                    }
+                }
+                this.setState({index : index});
+            }
+            
+        }               
     }
     componentWillUnmount(){
         if(this.timer){
@@ -77,19 +100,44 @@ class Trailer extends React.Component{
         }
     }
     render(){
-       const contentArr = this.props.trailInfo?this.props.trailInfo.trailingContentArr:[];
+        //删除chip后不调用计时器函数避免
+        //求跟随组件的背景：如果firstNotNullContentKey为trailingContentArr的长度，则没有非空的内容项，设置颜色为透明，设置内容为空字符串
+        //删除chip后componentDidUpdate不调用：可能this.state.index为空内容项的下标
+        let contentBg = "transparent";
+        let contentText = "";
+        let contentArr = [];
+        let firstNotNullContentKey = 0;
+        if(this.props.trailInfo){
+            contentArr = this.props.trailInfo.trailingContentArr;
+            firstNotNullContentKey = GetFirstNotNullKey(this.props.trailInfo.trailingContentArr);
+            if(firstNotNullContentKey < contentArr.length){
+                //存在非空内容项：设置当前跟随组件的颜色和文字
+                if(contentArr.length > 0 && contentArr[this.state.index] !== null && typeof(contentArr[this.state.index]) !== 'undefined'){
+                    contentBg = Color2Str(contentArr[this.state.index<contentArr.length?this.state.index:firstNotNullContentKey].activeKeyColor);
+                    contentText = contentArr[this.state.index<contentArr.length?this.state.index:firstNotNullContentKey].activeKeyContent;
+                }else if(contentArr.length > 0 && (contentArr[this.state.index] === null || typeof(contentArr[this.state.index]) === 'undefined')){
+                    //当前内容下标对应内容为空：设置为第一个非空内容项
+                    contentBg = Color2Str(contentArr[firstNotNullContentKey].activeKeyColor);
+                    contentText = contentArr[firstNotNullContentKey].activeKeyContent;
+                    this.setState({index : firstNotNullContentKey});
+                }
+            } 
+        }
+        
+        
+
         const divStyle = {
             visibility : this.props.visibility?"visible":"hidden",
             position:"absolute",
-            top : this.props.top + 10,
+            top : this.props.top + 10, 
             left : this.props.left + 10,
             width : this.props.trailInfo?this.props.trailInfo.trailerWidth:0,
             height : this.props.trailInfo?this.props.trailInfo.trailerHeight:0,
-            background : contentArr.length>0?Color2Str(contentArr[this.state.index<contentArr.length?this.state.index:0].activeKeyColor):"transparent"
+            background : contentBg
         }
         return (
             <div 
-                dangerouslySetInnerHTML={{__html:contentArr.length>0?contentArr[this.state.index<contentArr.length?this.state.index:0].activeKeyContent:""}}
+                dangerouslySetInnerHTML={{__html:contentText}}
                 style={divStyle}>
             </div>
         )

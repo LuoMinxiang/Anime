@@ -15,6 +15,7 @@ class Tabbar extends React.Component{
     super(props);
     this.isChangeSettingMode = false;
     this.isTrailSettingMode = false;
+    this.isHoverSettingMode = false;
     this.state = {
       //当前选择的tab索引
       tabIndex : 0,
@@ -42,12 +43,16 @@ class Tabbar extends React.Component{
     this.emitter2 = EventEmitter.addListener("isTrailingSettingOn",(isExpanded) => {
       this.isTrailSettingMode = isExpanded;
     })
+    //监听是否处于悬停特效设置模式
+    this.emitter3 = EventEmitter.addListener("isHoverSettingOn",(isExpanded) => {
+      this.isHoverSettingMode = isExpanded;
+    })
   }
     
 
   //真正设置tab索引的切换：常变动效设置模式下（没保存）切换到其他tab要发出警告。其他时候点哪儿切换哪儿
   setTabIndex(index){
-    if((this.isChangeSettingMode || this.isTrailSettingMode) && this.props.anime && index !== 2){
+    if((this.isChangeSettingMode || this.isTrailSettingMode || this.isHoverSettingMode) && this.props.anime && index !== 2){
       //常变动效设置模式下，切换tab发出警告
       this.setState({open : true});
       this.tabToBeChanged = index;
@@ -72,6 +77,10 @@ class Tabbar extends React.Component{
   handleDialogChooseChange(){
     this.setState({tabIndex : this.tabToBeChanged});
     this.handleDialogClose();
+    //关闭动效设置模式
+    this.isChangeSettingMode = false;
+    this.isTrailSettingMode = false;
+    this.isHoverSettingMode = false;
   }
 
   //监听props（每次设置常变动效的内容项显示tabbar时都从tab0开始显示）的改变，并在改变时切换到tab0

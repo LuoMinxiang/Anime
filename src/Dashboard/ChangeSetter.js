@@ -184,7 +184,8 @@ class ControlledAccordions extends React.Component{
     handleDelete = (index) => () => {
       //从常变内容数组中删除指定下标的内容项
       const arr = [...this.state.contentInfoArr];
-      arr.splice(index, 1);
+      //arr.splice(index, 1);
+      delete arr[index];
       this.setState({contentInfoArr : arr});
       //将当前选中的内容项置为0
       this.selectedContentIndex = 0;
@@ -351,7 +352,7 @@ class ControlledAccordions extends React.Component{
               <InputSlider interval={this.state.interval} handleIntervalChange={this.handleIntervalChange}></InputSlider>
               <br/>
               <div style={this.gridContainer}>
-          {this.state.contentInfoArr.map((item, index) =>  item === undefined?null:
+          {this.state.contentInfoArr.map((item, index) =>  (typeof(item) === 'undefined' || item === null)?null:
           <Tooltip title={item.name}>
               <Chip
               label={item.name}
