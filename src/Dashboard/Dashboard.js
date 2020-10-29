@@ -39,6 +39,7 @@ function Copyright() {
 }
 
 const drawerWidth = 240;
+const canvasHeightUnit = 712;
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -119,13 +120,16 @@ const useStyles = makeStyles((theme) => ({
     width:1200,
     height: 712,
     //height: 1536,
-    position: 'relative'
+    position: 'relative',
+    //background : 'green'
   },
   //规定画布风格的样式
   canvasPaper : {
     padding : '0',
     display: 'flex',
-    overflow: 'auto',
+    //overflow: 'auto',
+    overflowX: 'hidden',
+    overflowY: 'scroll',
     flexDirection: 'column',
   }
 }));
@@ -134,6 +138,8 @@ const useStyles = makeStyles((theme) => ({
 export default function Dashboard() {
   const classes = useStyles();
   const [open, setOpen] = React.useState(true);
+  const [pageLength, setPageLength] = React.useState(712);
+  const [canvasScrollTop, setCanvasScrollTop] = React.useState(0);
   const handleDrawerOpen = () => {
     setOpen(true);
   };
@@ -144,6 +150,24 @@ export default function Dashboard() {
   const handlePreviewClick = () => {
     //将webCanvas中所有布局组件的数据发送给后端
     EventEmitter.emit("getSettersInfo","getSettersInfo");
+  }
+  
+  //画布组件的下滚监听函数
+  const handleCanvasScroll = (event) => {
+    //通知ScrollSetter画布的scrollTop
+    EventEmitter.emit("canvasScrolled", event.target.scrollTop);
+    setCanvasScrollTop(event.target.scrollTop);
+  }
+
+  //点击添加画布长度的回调函数
+  const handleLengthenPage = () => {
+    setPageLength(pageLength + canvasHeightUnit);
+  }
+
+  const handleShortenPage = () =>{
+    if(pageLength > canvasHeightUnit){
+      setPageLength(pageLength - canvasHeightUnit);
+    }
   }
 
   return (
@@ -184,14 +208,22 @@ export default function Dashboard() {
           </IconButton>
         </div>
         <Divider />
+        <Button variant="outlined" color="inherit" onClick={handleLengthenPage}>
+          Lengthen page
+        </Button>
+        <Button variant="outlined" color="inherit" onClick={handleShortenPage}>
+            Shorten page
+        </Button>
         <ListMenu></ListMenu>
       </Drawer>
       <main className={classes.content}>
         <div className={classes.appBarSpacer} />
         <Container maxWidth="lg" className={classes.container}>
         <Grid item xs={12}>
-              <Paper className={fixedHeightPaper}>
-                <WebCanvas></WebCanvas>
+              <Paper className={fixedHeightPaper} onScroll={handleCanvasScroll}>
+                <WebCanvas 
+                  pageLength={pageLength}
+                  scrollTop={canvasScrollTop}></WebCanvas>
               </Paper>
             </Grid>
           <Box pt={4}>

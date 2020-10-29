@@ -7,6 +7,7 @@ import {Color2Str} from '../Utils/Color2Str'
 import {GetFirstNotNullKey} from '../Utils/GetFirstNotNullKey'
 import Trailer from '../Trailer/Trailer'
 import ReactDOM from 'react-dom'
+import { ThreeSixtySharp } from '@material-ui/icons';
 
 //布局组件
 
@@ -40,6 +41,13 @@ class LayoutSetter extends React.Component{
       trailTop : 0,
       trailLeft : 0,
 
+      //当前画布的下滚幅度：判断画布下滚幅度有无改变
+      curScrollTop : 0,
+      
+      //文字走马灯marginLeft
+      marqueeLeft : 0,
+      //当前是否设置走马灯效果
+      curSetMarquee : false,
     }
     //当前常变数组内容项索引
     this.contentIndex = 0;
@@ -49,12 +57,24 @@ class LayoutSetter extends React.Component{
     //div的ref
     this.divRef = null;
 
+    //走马灯div的ref
+    this.marqueeRef = null;
+    //走马灯文字填充数组
+    this.marqueeFillingArr = "";
+
     //缩放前的宽高：防止恢复时由于计算累计误差无法恢复宽高
     this.originalWidth = this.state.width;
     this.originalHeight = this.state.height;
     //缩放前的位置：缩放应该是以中心点辐射性缩放，而不是保持左上角坐标不变缩放，所以位置也要表
     this.originalX = this.state.x;
     this.originalY = this.state.y;
+
+    //记录下滚动效前的原始位置：防止下滚时出现累计误差
+    this.originalScrollX = this.state.x;
+    this.originalScrollY = this.state.y;
+    //记录下滚动效前的宽高：防止下滚时出现累计误差
+    this.originalScrollWidth = this.state.width;
+    this.originalScrollHeight = this.state.height;
     
     //函数绑定
     this.handleContentChange = this.handleContentChange.bind(this);
@@ -63,6 +83,7 @@ class LayoutSetter extends React.Component{
     this.handleMouseOut = this.handleMouseOut.bind(this);
     this.handleMouseEnter = this.handleMouseEnter.bind(this);
     this.handleMouseLeave = this.handleMouseLeave.bind(this);
+    this.setMarqueeTimer = this.setMarqueeTimer.bind(this);
   }
 
   componentDidMount(){
@@ -182,6 +203,79 @@ componentDidUpdate(prevProps, prevState){
     animeInfo: this.props.animeInfo
   };
   data[this.props.index] = setterInfo;
+
+  //监听画布下滚幅度的变化：下滚幅度在下滚动效范围内时改变x和y值
+  if(this.props.canvasScrollTop !== this.state.curScrollTop && this.props.activeKey !== this.props.index){
+    if(this.props.animeInfo.hasScrollEffect){
+      //设置了下滚动效：判断当前下滚幅度是否落在下滚动效范围内
+      if(this.props.canvasScrollTop >= this.props.animeInfo.startScrollTop && this.props.canvasScrollTop <= this.props.animeInfo.endScrollTop){
+        //当前下滚幅度落在下滚动效范围内：改变x和y值
+        const deltaX = this.props.animeInfo.deltaX;
+        const deltaY = this.props.animeInfo.deltaY;
+        const deltaScrollTop = this.props.canvasScrollTop - this.props.animeInfo.startScrollTop;
+        const curX = this.originalScrollX + deltaX * deltaScrollTop;
+        const curY = this.originalScrollY + deltaY * deltaScrollTop;
+        //改变width和height值
+        const deltaWidth = this.props.animeInfo.deltaWidth;
+        const deltaHeight = this.props.animeInfo.deltaHeight;
+        const curWidth = this.originalScrollWidth + deltaWidth * deltaScrollTop;
+        const curHeight = this.originalHeight + deltaHeight * deltaScrollTop;
+        this.setState({
+          x : curX,
+          y : curY,
+          width : curWidth,
+          height : curHeight,
+        });
+      }else if(this.props.canvasScrollTop < this.props.animeInfo.startScrollTop){
+        this.setState({
+          x : this.originalScrollX,
+          y : this.originalScrollY,
+          width : this.originalWidth,
+          height : this.originalHeight,
+        });
+      }
+
+    }
+    this.setState({curScrollTop : this.props.canvasScrollTop});
+  }
+  if(this.props.activeKey === this.props.index && (this.state.x !== this.originalScrollX || this.state.y !== this.originalScrollY)){
+    this.setState({
+      x : this.originalScrollX,
+      y : this.originalScrollY,
+    });
+  }
+
+  //判断设置走马灯效果是否改变
+  if(this.props.animeInfo.setMarquee !== this.state.curSetMarquee){
+    //设置走马灯效果改变：判断打开还是关闭
+    if(this.props.animeInfo.setMarquee === true && this.props.data !== null && typeof(this.props.data) !== 'undefined'){
+      //打开走马灯效果
+      //容器的宽度
+      const containerWidth = this.state.width;
+      //文字的宽度
+      const textWidth = this.marqueeRef.scrollWidth;
+      //计算多少span能填满div，然后把这些span都放进div中
+      let textNum = containerWidth / textWidth;
+      //文字内容
+      const text = this.props.data.replace(/<p/g,'<span').replace(/p>/g,'span>');
+      //这里刚刚将marqueeFillArr赋值，渲染的div其实还是空的，故textWidth=0，textNum=infinite，报错Invalid string length
+      this.marqueeFillingArr = "";
+      if(textNum < 1) textNum = 1;
+      for(let i = 0;i<textNum;i++){
+        this.marqueeFillingArr += text;
+      }
+      //设置走马灯定时器
+      this.setMarqueeTimer(textWidth);
+    }else{
+      //关闭走马灯效果
+      if(this.marqueeTimer){
+        clearInterval(this.marqueeTimer);
+      }
+    }
+    this.setState({
+      curSetMarquee : this.props.animeInfo.setMarquee
+    })
+  }
 }
 
 //设置定时器
@@ -191,6 +285,18 @@ setTimer(){
   }
   if(this.props.animeInfo.changingInterval){
     this.timer = setInterval(this.handleContentChange, this.props.animeInfo.changingInterval * 50);
+  }
+}
+
+//设置走马灯定时器
+setMarqueeTimer(spanWidth){
+  if(this.marqueeTimer){
+    clearInterval(this.marqueeTimer);
+  }
+  if(this.props.animeInfo.setMarquee){
+    this.marqueeTimer = setInterval(() => {
+      this.setState(state=>({marqueeLeft : ((state.marqueeLeft - 1) % spanWidth)}));
+    },10);
   }
 }
 
@@ -205,7 +311,6 @@ handleMouseMove(event){
       trailLeft : (event.clientX - boundingRect.left)
   })
   this.setState({showTrailer : true});
-  //console.log("event.clientY : " + event.clientY + ", event.clientX : " + event.clientX)
 
   //阻止事件冒泡（子组件直接处理事件，父组件不会再处理事件），在有setter的局部跟随区域内防止触发画布部分的跟随事件
   event.cancelBubble = true;
@@ -305,7 +410,9 @@ handleMouseLeave(){
         //alignItems: "center",
         //justifyContent: "center",
         border: "solid 1px #ddd",
-        background: setterColor
+        background: setterColor,
+        overflow : "hidden",
+        whiteSpace : "nowrap",
       }
       //被选中的样式：红色虚线边框
       const activeLayoutSetterStyle = {
@@ -313,12 +420,22 @@ handleMouseLeave(){
         //alignItems: "center",
         //justifyContent: "center",
         border: "dashed 2px red",
-        background: setterColor
+        background: setterColor,
+        overflow : "hidden",
+        whiteSpace : "nowrap",
       }
       const divStyle = {
         height : "100%",
         width : "100%",
         //background : "green"
+      }
+
+      //走马灯div的样式
+      const marqueeStyle = {
+            marginLeft : this.state.marqueeLeft,
+            padding : 0,
+            display : "inline-block",
+            //background : "red",
       }
 
       const trailInfo = {
@@ -344,6 +461,8 @@ handleMouseLeave(){
           this.setState({ x: d.x, y: d.y });
           this.originalX = d.x;
           this.originalY = d.y; 
+          this.originalScrollX = d.x;
+          this.originalScrollY = d.y;
         }}
         onResizeStart={() => {
           this.setState({
@@ -375,7 +494,9 @@ handleMouseLeave(){
               visibility={this.state.showTrailer}
           ></Trailer>
         {/* div的内容必须是this.props.data，不然单一内容时手动修改setter内容无效 */}
-        <div  
+        {this.props.animeInfo.setMarquee? 
+        <div ref={element => this.marqueeRef = element} style={marqueeStyle} dangerouslySetInnerHTML={{__html:(this.props.data !== null && typeof(this.props.data) !== 'undefined') ? this.props.data.replace(/<p/g,'<span').replace(/p>/g,'span>') + this.marqueeFillingArr : this.props.data}}></div>
+        : <div  
           dangerouslySetInnerHTML={{__html:contentText}}
           style={divStyle}
           onMouseMove={this.handleMouseMove}
@@ -384,7 +505,9 @@ handleMouseLeave(){
           onMouseLeave={this.handleMouseLeave}
           ref={element => this.divRef = element}>
           
-          </div>
+          </div>}
+        
+          
       </Rnd>
     
     //加上出现动效后的布局组件

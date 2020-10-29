@@ -20,7 +20,6 @@ export default class WarningDialog extends React.Component{
         return (
             <Dialog
           open={this.props.open}
-          //TransitionComponent={this.props.Transition || null}
           keepMounted
           onClose={this.props.handleClose}
           aria-labelledby="alert-dialog-slide-title"
@@ -33,12 +32,12 @@ export default class WarningDialog extends React.Component{
             </DialogContentText>
           </DialogContent>
           <DialogActions>
-            <Button onClick={this.props.handleDisagreeClose} color="primary">
+            {this.props.handleDisagreeClose? <Button onClick={this.props.handleDisagreeClose} color="primary">
               {this.props.disagree || "Disagree"}
-            </Button>
-            <Button onClick={this.props.handleAgreeClose} color="primary">
+            </Button> : null}
+            {this.props.handleAgreeClose? <Button onClick={this.props.handleAgreeClose} color="primary">
               {this.props.agree || "Agree"}
-            </Button>
+            </Button> : null}            
           </DialogActions>
         </Dialog> 
         )

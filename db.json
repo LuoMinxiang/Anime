@@ -1,32 +1,4 @@
 {
-  "posts": [
-    {
-      "0": {
-        "totalN": 1,
-        "index": 0,
-        "width": 320,
-        "height": 200,
-        "x": 304,
-        "y": 122,
-        "color": "rgba(245,166,35,1)",
-        "content": "\n<h2 style=\"text-align: center;\">\n  TinyMCE provides a <span style=\"text-decoration: underline;\">full-featured</span> rich text editing experience, and a featherweight download.\n</h2>\n<p style=\"text-align: center;\">\n  <strong><span style=\"font-size: 14pt;\"><span style=\"color: #7e8c8d; font-weight: 600;\">No matter what you're building, TinyMCE has got you covered.</span></span></strong>\n</p>",
-        "animInfo": {
-          "reveal": ""
-        }
-      },
-      "id": 1
-    }
-  ],
-  "comments": [
-    {
-      "id": 1,
-      "body": "some comment",
-      "postId": 1
-    }
-  ],
-  "profile": {
-    "name": "typicode"
-  },
   "setterInfo": {
     "totalN": 1,
     "setters": [
@@ -35,17 +7,13 @@
         "index": 0,
         "width": 320,
         "height": 200,
-        "x": 367,
-        "y": 150,
-        "color": {
-          "r": 245,
-          "g": 166,
-          "b": 35,
-          "a": 1
-        },
+        "x": 141,
+        "y": 82,
+        "color": "transparent",
         "content": "",
         "animeInfo": {
           "reveal": "",
+          "setMarquee": true,
           "changingContentArr": [],
           "changingInterval": 0,
           "trailingContentArr": [],
@@ -53,36 +21,41 @@
           "trailerWidth": 0,
           "trailerHeight": 0,
           "hoverScale": 1,
-          "hoverContentArr": []
+          "hoverContentArr": [],
+          "startScrollTop": 0,
+          "endScrollTop": 0,
+          "startXY": {
+            "x": 141,
+            "y": 82
+          },
+          "endXY": {
+            "x": 0,
+            "y": 0
+          },
+          "deltaX": null,
+          "deltaY": null,
+          "startSize": {
+            "width": 320,
+            "height": 200
+          },
+          "endSize": {
+            "width": 0,
+            "height": 0
+          },
+          "deltaWidth": null,
+          "deltaHeight": null,
+          "hasScrollEffect": false
         }
       }
     ]
   },
   "canvasInfo": {
-    "trailingContentArr": [
-      {
-        "name": "Content0",
-        "activeKeyColor": {
-          "r": 184,
-          "g": 233,
-          "b": 134,
-          "a": 1
-        },
-        "activeKeyContent": "<p style=\"text-align: center;\">Hello World</p>"
-      },
-      {
-        "name": "Content1",
-        "activeKeyColor": {
-          "r": 65,
-          "g": 117,
-          "b": 5,
-          "a": 1
-        },
-        "activeKeyContent": ""
-      }
-    ],
-    "trailingInterval": 7,
+    "trailingContentArr": [],
+    "trailingInterval": 0,
     "trailerWidth": 100,
     "trailerHeight": 100
+  },
+  "canvasLength": {
+    "canvasHeight": 712
   }
 }

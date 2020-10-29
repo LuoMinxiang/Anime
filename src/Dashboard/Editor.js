@@ -76,7 +76,7 @@ class TinymceEditor extends React.Component{
                         onAction: function () {
                             //测试按钮能触发回调函数
                             alert("font-decrease button clicked!");
-                            editor.setContent("<b>Hello, World!</b>");
+                            editor.setContent("<p><span style='font-size:40px;' id='0'>Hello, World!</span></p>");
                         }
                       });
                   }

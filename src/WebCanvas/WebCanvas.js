@@ -11,7 +11,8 @@ import { ExploreOffOutlined } from '@material-ui/icons';
 import Trailer from '../Trailer/Trailer'
 import ReactDOM from 'react-dom'
 import HoverLayoutSetter from '../HoverLayoutSetter/HoverLayoutSetter'
-
+import ScrollLayoutSetter from '../ScrollLayoutSetter/ScrollLayoutSetter'
+import Tooltip from '@material-ui/core/Tooltip';
 //画布组件
 
 class WebCanvas extends React.Component{
@@ -44,12 +45,22 @@ class WebCanvas extends React.Component{
           selectedHoverIndex : null,
           //当前悬停的LayoutSetter的index
           hoveredSetterKey : null,
+          //下滚动效位置设置组件可见性
+          scrollLayoutSetterVisibility : "hidden",
+          //下滚区域将要设置的起始和结束
+          startScrollTopToBeSet : 0,
+          endScrollTopToBeSet : 0,
+          //当前画布的scrollTop
+          curScrollTop : 0,
+          //当前画布的高度
+          curCanvasHeight : 712,
         };
 
-        //是否在各个动效的设置模式：判断能否切换setter
+        //设置动效模式
         this.isChangeSettingMode = false;
         this.isTrailSettingMode = false;
         this.isHoverSettingMode = false;
+        this.isScrollSettingMode = false;
         //常变动效设置模式下将要切换的选中组件
         this.keyToBeSelected = null;
         //悬停出现组件将要设置的位置和宽高
@@ -57,6 +68,9 @@ class WebCanvas extends React.Component{
         this.hoverSetterLeftToBeSet = 0;
         this.hoverSetterWidthToBeSet = 0;
         this.hoverSetterHeightToBeSet = 0;
+        //set过下滚动效的边界
+        this.hasSetStartScrollTop = false;
+        this.hasSetEndScrollTop = false;
 
         //画布组件的ref
         this.canvasRef = null;
@@ -75,9 +89,27 @@ class WebCanvas extends React.Component{
         this.handleHoverSetterClick = this.handleHoverSetterClick.bind(this);
         this.handleMouseEnter = this.handleMouseEnter.bind(this);
         this.handleMouseLeave = this.handleMouseLeave.bind(this);
+        this.handleScrollSetterPositionChange = this.handleScrollSetterPositionChange.bind(this);
+        this.handleHasSetScrollEffect = this.handleHasSetScrollEffect.bind(this);
+        this.handleScrollSetterSizeChange = this.handleScrollSetterSizeChange.bind(this);
 
     }
     componentDidMount(){
+      //将画布高度信息上传至数据库
+      const canvasLengthobj = {canvasHeight : this.props.pageLength};
+      const body = JSON.stringify(canvasLengthobj);
+      //json-server测试接口
+      fetch('http://127.0.0.1:3000/canvasLength',{
+          method:'post',
+          mode:'cors',
+          headers:{
+              'Content-Type': 'application/json;charset=UTF-8',
+              'Accept':'application/json, text/plain'
+          },
+          body: body
+      })
+      .catch(e => console.log('错误:', e))
+
       //新增布局组件函数
         this.emitter1 = EventEmitter.addListener("ClickedAddLayoutSetter",(msg) => {
             // add a LayoutSetter on click
@@ -94,6 +126,8 @@ class WebCanvas extends React.Component{
             animeInfoArray.push({
               //出现方式
               reveal : "",
+              //是否设置走马灯效果
+              setMarquee : false,
               //常变动效内容/样式数组
               changingContentArr : [],
               //常变动效定时器
@@ -108,7 +142,21 @@ class WebCanvas extends React.Component{
               //悬停缩放比例：大于1是放大，小于1是缩小
               hoverScale : 1,
               //悬停出现内容数组
-              hoverContentArr : []
+              hoverContentArr : [],
+              //下滚动效数据
+              //下滚动效：初始scrollTop、终止scrollTop、初始{x,y}，终止{x,y}、x方向单位增量、y方向单位增量
+              startScrollTop : 0,
+              endScrollTop : 0,
+              startXY : {x:0, y:0},
+              endXY : {x:0, y:0},
+              deltaX : 0,
+              deltaY : 0,
+              startSize : {width:0, height:0},
+              endSize : {width:0, height:0},
+              deltaWidth : 0,
+              deltaHeight : 0,
+              //判断是否设置过下滚动效：方便preview中放进数组里在onscroll中遍历
+              hasScrollEffect : false,
             });
             this.setState({
               setterAniInfoArray : animeInfoArray
@@ -154,8 +202,24 @@ class WebCanvas extends React.Component{
             animeInfoArray[this.state.activeKey].trailerWidth = msg.trailerWidth;
             animeInfoArray[this.state.activeKey].trailerHeight = msg.trailerHeight;
             animeInfoArray[this.state.activeKey].changingInterval = msg.changingInterval;
+            animeInfoArray[this.state.activeKey].setMarquee = msg.setMarquee;
             animeInfoArray[this.state.activeKey].reveal = msg.reveal;
             animeInfoArray[this.state.activeKey].hoverScale = msg.hoverScale;
+            animeInfoArray[this.state.activeKey].startScrollTop = msg.startScrollTop;
+            animeInfoArray[this.state.activeKey].endScrollTop = msg.endScrollTop;
+            animeInfoArray[this.state.activeKey].startXY.x = msg.startXY.x;
+            animeInfoArray[this.state.activeKey].startXY.y = msg.startXY.y;
+            animeInfoArray[this.state.activeKey].endXY.x = msg.endXY.x;
+            animeInfoArray[this.state.activeKey].endXY.y = msg.endXY.y;
+            animeInfoArray[this.state.activeKey].startSize.width = msg.startSize.width;
+            animeInfoArray[this.state.activeKey].startSize.height = msg.startSize.height;
+            animeInfoArray[this.state.activeKey].endSize.width = msg.endSize.width;
+            animeInfoArray[this.state.activeKey].endSize.height = msg.endSize.height;
+            animeInfoArray[this.state.activeKey].deltaX = (msg.endXY.x - msg.startXY.x) / (msg.endScrollTop - msg.startScrollTop);
+            animeInfoArray[this.state.activeKey].deltaY = (msg.endXY.y - msg.startXY.y) / (msg.endScrollTop - msg.startScrollTop);
+            animeInfoArray[this.state.activeKey].deltaWidth = (msg.endSize.width - msg.startSize.width) / (msg.endScrollTop - msg.startScrollTop);
+            animeInfoArray[this.state.activeKey].deltaHeight = (msg.endSize.height - msg.startSize.height) / (msg.endScrollTop - msg.startScrollTop);
+            animeInfoArray[this.state.activeKey].hasScrollEffect = msg.hasScrollEffect;
             msg.hoverContentArr.map((item, index) => {
               if(item !== null && typeof(item) !== 'undefined'){
                 //将hoverSetter中设置的每一项悬停出现组件的颜色和文字合并到webCanvas维护的设置好位置和宽高的悬停出现信息数组中
@@ -212,6 +276,20 @@ class WebCanvas extends React.Component{
           this.isHoverSettingMode = isExpanded;
         })
 
+        //监听是否处于下滚特效设置模式
+        this.emitter53 = EventEmitter.addListener("isScrollSettingOn",(isExpanded) => {
+          this.isScrollSettingMode = isExpanded;
+          if(this.state.activeKey !== null){
+            if(isExpanded){
+            this.setState({scrollLayoutSetterVisibility : "visible"});
+          }else if(!this.state.setterAniInfoArray[this.state.activeKey].hasScrollEffect){
+            this.setState({scrollLayoutSetterVisibility : "hidden"});
+          }
+          }
+          
+          
+        })
+
         //监听画布跟随动效
         this.emitter6 = EventEmitter.addListener("getCanvasAnim",(canvasAnimInfo) => {
           //判断当前有无选中的setter：如果有就不管画布跟随；如果没有就设置画布跟随
@@ -247,6 +325,52 @@ class WebCanvas extends React.Component{
         }
       }
         )
+
+        //监听下滚区域上界的设置
+        this.emitter8 = EventEmitter.addListener("hasSetStartScrollTop", startScrollTop => {
+          this.setState({
+            startScrollTopToBeSet : startScrollTop
+          });
+          this.hasSetStartScrollTop = true;
+        })
+
+        //监听下滚区域下界的设置
+        this.emitter9 = EventEmitter.addListener("hasSetEndScrollTop", endScrollTop => {
+          this.setState({
+            endScrollTopToBeSet : endScrollTop
+          });
+          this.hasSetEndScrollTop = true;
+        })
+    }
+
+    componentDidUpdate(prevProps, prevState){
+      //监听传入的画布长度
+      if(this.props.pageLength !== this.state.curCanvasHeight){
+        //画布高度改变
+        //将传入的画布长度上传至数据库canvasLength接口
+        //将画布高度信息上传至数据库
+        const canvasLengthobj = {canvasHeight : this.props.pageLength};
+        const body = JSON.stringify(canvasLengthobj);
+        //json-server测试接口
+        fetch('http://127.0.0.1:3000/canvasLength',{
+          method:'post',
+          mode:'cors',
+          headers:{
+              'Content-Type': 'application/json;charset=UTF-8',
+              'Accept':'application/json, text/plain'
+          },
+          body: body
+        })
+        .then(res => res.json())
+        .then(data => {
+          //console.log(data);
+        })
+        .catch(e => console.log('错误:', e))
+      }
+      if(this.props.scrollTop !== this.state.curScrollTop){
+        //画布下滚幅度改变
+        this.setState({curScrollTop : this.props.scrollTop});
+      }
     }
 
     handleMouseMove(event){
@@ -276,15 +400,18 @@ class WebCanvas extends React.Component{
     handleCanvasClick(){
         //点击非布局组件的画布部分时取消对任何组件的选中
         //在设置常变和悬停动效模式下不能取消选中
-          if(!this.isChangeSettingMode || !this.isHoverSettingMode){
+          if(!this.isChangeSettingMode && !this.isHoverSettingMode && !this.isScrollSettingMode){
             //不在修改常变动效模式：能取消选中
-            this.setState({activeKey : null});
+            this.setState({
+              activeKey : null,
+              scrollLayoutSetterVisibility : "hidden"
+            });
         }
     }
 
     //点击layoutSetter：切换选中
     handleSetterClick(key,e){
-      if(this.state.activeKey !== null && key !== this.state.activeKey && (this.isChangeSettingMode || this.isHoverSettingMode || this.isTrailSettingMode)){        
+      if(this.state.activeKey !== null && key !== this.state.activeKey && (this.isChangeSettingMode || this.isHoverSettingMode || this.isTrailSettingMode || this.isScrollSettingMode)){        
         //切换选中组件并且当前处于常变动效设置模式：跳出对话框提示如果切换会丢失未应用的修改
         this.setState({open : true});
         this.keyToBeSelected = key;
@@ -294,17 +421,26 @@ class WebCanvas extends React.Component{
         e.stopPropagation();
       }else{
         //点击布局组件时选中该组件
-        this.setState({activeKey : key});
+        this.setState({
+          activeKey : key,
+          startScrollTopToBeSet : this.state.setterAniInfoArray[key].startScrollTop,
+          endScrollTopToBeSet : this.state.setterAniInfoArray[key].endScrollTop,
+        });
         //阻止事件冒泡（子组件直接处理事件，父组件不会再处理事件），防止触发画布部分的点击事件
         e.cancelBubble = true;
         e.stopPropagation();
+        if(this.state.setterAniInfoArray[key].hasScrollEffect){
+          this.setState({scrollLayoutSetterVisibility : "visible"});
+        }else{
+          this.setState({scrollLayoutSetterVisibility : "hidden"});
+        }
       }
-      
+      this.hasSetStartScrollTop = false;
+      this.hasSetEndScrollTop = false;
     }
 
     //点击hoverLayoutSetter：切换hoverLayoutSetter的选中
     handleHoverSetterClick(key,e){
-      //alert("webcanvas - handleHoverSetterClick key = " + key)
         //点击布局组件时选中该组件
         this.setState({selectedHoverIndex : key});
         //阻止事件冒泡（子组件直接处理事件，父组件不会再处理事件），防止触发画布部分的点击事件
@@ -316,6 +452,10 @@ class WebCanvas extends React.Component{
       //关闭对话框并切换选中组件
       this.setState({open : false});
       this.setState({activeKey : this.keyToBeSelected});
+      if(this.keyToBeSelected !== null && this.isScrollSettingMode){
+        //在下滚动效设置模式切换到一个setter上：若该setter设置过下滚动效，则显示下滚动效设置setter
+        this.setState({scrollLayoutSetterVisibility : "visible"});
+      }
       //对话框也在画布上！所以也要阻止事件冒泡
       //阻止事件冒泡（子组件直接处理事件，父组件不会再处理事件），防止触发画布部分的点击事件
       e.cancelBubble = true;
@@ -414,6 +554,52 @@ class WebCanvas extends React.Component{
       this.setState({hoveredSetterKey : null});
     }
 
+    //设置下滚最终位置设置组件的拖拽回调函数
+    handleScrollSetterPositionChange(e,d){
+      //判断当前有无选中的setter：如果有就修改当前选中setter的动效设置数据的下滚最终位置endXY；如果没有就不管
+      if(this.state.activeKey !== null){
+        //当前有选中的setter：修改对应动效设置数据的下滚最终位置endXY
+        const animeInfoArray = [...this.state.setterAniInfoArray];
+        let curXY = {
+          x : d.x,
+          y : d.y
+        }
+        animeInfoArray[this.state.activeKey].endXY = curXY;
+        this.setState({
+          setterAniInfoArray : animeInfoArray
+        });
+      }
+
+    }
+
+    //设置下滚最终大小设置组件的缩放回调函数
+    handleScrollSetterSizeChange(width, height){
+      //判断当前有无选中的setter：如果有就修改当前选中setter的动效设置数据的下滚最终位置endSize；如果没有就不管
+      if(this.state.activeKey !== null){
+        //当前有选中的setter：修改对应动效设置数据的下滚最终位置endSize
+        const animeInfoArray = [...this.state.setterAniInfoArray];
+        let curSize = {
+          width : width,
+          height : height
+        }
+        animeInfoArray[this.state.activeKey].endSize = curSize;
+        this.setState({
+          setterAniInfoArray : animeInfoArray
+        });
+      }
+    }
+
+    //下滚动效终止位置设置组件拖拽停止：当前setter已设置过下滚动效
+    handleHasSetScrollEffect(){
+      if(this.state.activeKey !== null){
+        if(!this.state.setterAniInfoArray[this.state.activeKey].hasScrollEffect){
+          //没设置过下滚动效：改成设置过
+          let arr = [...this.state.setterAniInfoArray];
+          arr[this.state.activeKey].hasScrollEffect = true;
+          this.setState({setterAniInfoArray : arr});
+        }
+      }
+    }
 
     render(){
    //根据setter的编号值取出指定setter的颜色
@@ -428,6 +614,53 @@ class WebCanvas extends React.Component{
     const hoverContainerStyle = {
       background : "green"
     }
+
+    const lengthDivStyle = {
+      background : "red",
+      height: "0.1px",
+      width: "0.11px",
+      position : "absolute",
+      top : this.props.pageLength,
+      left : 0
+    }
+
+    //设置下滚动效区域分割线的开始位置、结束位置、可见性、样式
+    //只有选中setter并且(设置过下滚动效设置状态 或者 在scrollSetter中set过分割线)时显示下滚动效分割线
+    let startLineVisibility = false;
+    let endLineVisibility = false;
+    if(this.state.activeKey !== null){
+      if(this.state.setterAniInfoArray[this.state.activeKey].hasScrollEffect){
+        //设置过下滚动效：区域分割线和下滚动效位置确定组件都可见，且都显示在已设置好的位置
+        startLineVisibility = true;
+        endLineVisibility = true;
+      }
+      if(this.hasSetEndScrollTop){
+        endLineVisibility = true;
+      }
+      if(this.hasSetStartScrollTop){
+        startLineVisibility = true;
+      }
+      
+    }
+
+
+    const startScrollTopLine = {
+      visibility : startLineVisibility?"visible":"hidden",
+      width : "100%",
+      borderTop : "dashed 3px blue",
+      position : "absolute",
+      top : this.state.startScrollTopToBeSet,  //activeStartScrollTop,
+      left : 0
+    }
+
+    const endScrollTopLine = {
+      visibility : endLineVisibility?"visible":"hidden",
+      width : "100%",
+      borderTop : "dashed 3px blue",
+      position : "absolute",
+      top : this.state.endScrollTopToBeSet,  //activeEndScrollTop,
+      left : 0
+    } 
     
         return (
           //LayoutSetter直接作为子组件时不能响应自定义的onClick事件（可能是组件自身的onClick优先级较高）。
@@ -439,6 +672,17 @@ class WebCanvas extends React.Component{
           onClick={this.handleCanvasClick}
           onMouseMove={this.handleMouseMove}
           onMouseOut={this.handleMouseOut}>
+            {/* 控制画布组件高度的看不见div */}
+            <div style={lengthDivStyle}></div>
+
+            {/* 设置下滚动效时起始和终止scrollTop线 */}
+            <Tooltip title="The start of scrolling effect" placement="top">
+            <div style={startScrollTopLine}></div>
+            </Tooltip>
+            <Tooltip title="The end of scrolling effect" placement="bottom">
+            <div style={endScrollTopLine}></div>
+            </Tooltip>
+
             {this.state.LayoutSetterArray.map((item,index) => item === undefined?null:
             <div key={index} onClick={(e) => this.handleSetterClick(index,e)}>
               <LayoutSetter 
@@ -449,7 +693,9 @@ class WebCanvas extends React.Component{
                   data={this.state.setterContentArray[index]}
                   animeInfo={this.state.setterAniInfoArray[index]}
                   handleMouseEnter={this.handleMouseEnter}
-                  handleMouseLeave={this.handleMouseLeave}>
+                  handleMouseLeave={this.handleMouseLeave}
+                  canvasScrollTop={this.state.curScrollTop}
+                  >
               </LayoutSetter>
             </div>)}
             {this.state.activeKey!==null?this.state.setterAniInfoArray[this.state.activeKey].hoverContentArr.map((item,index) => typeof(item) === 'undefined' || item === null?null:
@@ -484,11 +730,20 @@ class WebCanvas extends React.Component{
               </HoverLayoutSetter>
             </div>
             ):null}
+
+            <ScrollLayoutSetter
+              visibility={this.state.scrollLayoutSetterVisibility}
+              onDrag={this.handleScrollSetterPositionChange}
+              onResize={this.handleScrollSetterSizeChange}
+              //onDragStop={this.handleHasSetScrollEffect}
+            ></ScrollLayoutSetter>
+            
+            
             <Trailer
                 top={this.state.trailTop}
                 left={this.state.trailLeft}
                 trailInfo={this.state.canvasAnimInfo}
-                visibility={(this.state.canvasAnimInfo && this.state.showTrailer)}
+                visibility= {(this.state.canvasAnimInfo && this.state.showTrailer)}
             ></Trailer>
             <Dialog
           open={this.state.open}

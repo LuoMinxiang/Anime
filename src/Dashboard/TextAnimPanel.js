@@ -10,6 +10,7 @@ import ControlledAccordions from './ChangeSetter'
 import TrailSetter from './TrailSetter'
 import { ActiveKeyInfoContext } from './listItems'
 import HoverSetter from './HoverSetter'
+import ScrollSetter from './ScrollSetter'
 
 //Tabbar中动效设置面板
 
@@ -22,6 +23,8 @@ class TextAnimPanel extends React.Component{
         this.animInfo = {
             //出现动效类型
             reveal : "",
+            //是否设置走马灯效果
+            setMarquee : false,
             //常变内容数组
             changingContentArr : [],
             //常变定时器时间间隔
@@ -36,7 +39,21 @@ class TextAnimPanel extends React.Component{
             //悬停缩放比例：大于1是放大，小于1是缩小
             hoverScale : 1,
             //悬停出现内容数组
-            hoverContentArr : []
+            hoverContentArr : [],
+            //下滚动效：初始scrollTop、终止scrollTop、初始{x,y}，终止{x,y}、x方向单位增量、y方向单位增量
+            startScrollTop : 0,
+            endScrollTop : 0,
+            startXY : {x:0, y:0},
+            endXY : {x:0, y:0},
+            deltaX : 0,
+            deltaY : 0,
+            //判断是否设置过下滚动效：方便preview中放进数组里在onscroll中遍历
+            hasScrollEffect : false,
+            //下滚动效：初始{width，height}，终止{width，height}，width单位增量，height单位增量
+            startSize : {width : 320, height : 200},
+            endSize : {width : 320, height : 200},
+            deltaWidth : 0,
+            deltaHeight : 0,
         }
         //画布因为只有一个所以直接在动效设置面板中维护即可。TODO - 初始化的时候从数据库中读出画布动效，然后广播给画布
         this.canvasAnimInfo = {
@@ -53,6 +70,8 @@ class TextAnimPanel extends React.Component{
         this.handleChangingSettingFinished = this.handleChangingSettingFinished.bind(this);
         this.handleTrailingSettingFinished = this.handleTrailingSettingFinished.bind(this);
         this.handleHoverSettingFinished = this.handleHoverSettingFinished.bind(this);
+        this.handleScrollSettingFinished = this.handleScrollSettingFinished.bind(this);
+        this.handleSetMarqueeFinished = this.handleSetMarqueeFinished.bind(this);
     }
     
     //常变动效设置完成时调用，将设置好的常变动效数据放入常变动效数据结构中
@@ -109,7 +128,27 @@ class TextAnimPanel extends React.Component{
         //广播动效信息对象
         EventEmitter.emit("getAnim", this.animInfo);
     }
+
+    //下滚动效设置完成时调用，将设置好的下滚动效数据放入下滚动效数据结构中
+    handleScrollSettingFinished(startScrollTop, endScrollTop, startX, startY, endX, endY){
+        this.animInfo.startScrollTop = startScrollTop;
+        this.animInfo.endScrollTop = endScrollTop;
+        this.animInfo.startXY.x = startX;
+        this.animInfo.startXY.y = startY;
+        this.animInfo.endXY.x = endX;
+        this.animInfo.endXY.y = endY;
+        this.animInfo.hasScrollEffect = true;
+
+        //广播动效信息对象
+        EventEmitter.emit("getAnim", this.animInfo);
+    }
         
+    handleSetMarqueeFinished(setMarquee){
+        this.animInfo.setMarquee = setMarquee;
+
+        //广播动效信息对象
+        EventEmitter.emit("getAnim", this.animInfo);
+    }
   
     //出现动效设置完成时调用
     handleChange = (event) => {
@@ -117,6 +156,7 @@ class TextAnimPanel extends React.Component{
     //广播动效信息对象
     EventEmitter.emit("getAnim", this.animInfo);
   };
+
     render(){
         const formControl = {
             minWidth: 120,
@@ -151,7 +191,7 @@ class TextAnimPanel extends React.Component{
                     this.animInfo.changingContentArr = [...activeKeyInfo.animeInfo.changingContentArr];
                     this.animInfo.changingInterval = activeKeyInfo.animeInfo.changingInterval;
                 }
-                return <ControlledAccordions handleSettingFinished={this.handleChangingSettingFinished} activeKeyInfo={activeKeyInfo}></ControlledAccordions>
+                return <ControlledAccordions handleSettingFinished={this.handleChangingSettingFinished} activeKeyInfo={activeKeyInfo} handleSetMarqueeFinished={this.handleSetMarqueeFinished}></ControlledAccordions>
             }}
             </ActiveKeyInfoContext.Consumer>
             <ActiveKeyInfoContext.Consumer>
@@ -204,6 +244,50 @@ class TextAnimPanel extends React.Component{
                             index={null}
                             hoverScale={1}
                             hoverContentArr={[]}></HoverSetter>
+                }
+                
+            }}
+            </ActiveKeyInfoContext.Consumer>
+
+            <ActiveKeyInfoContext.Consumer>
+            {(activeKeyInfo) => {
+                if(activeKeyInfo){
+                    this.animInfo.hoverContentArr = [...activeKeyInfo.animeInfo.hoverContentArr];
+                    this.animInfo.startScrollTop = activeKeyInfo.animeInfo.startScrollTop;
+                    this.animInfo.endScrollTop = activeKeyInfo.animeInfo.endScrollTop;
+                    this.animInfo.startXY.x = activeKeyInfo.x;
+                    this.animInfo.startXY.y = activeKeyInfo.y;
+                    //console.log("textAnimPanel - setter.x = " + activeKeyInfo.x + ", setter.y = " + activeKeyInfo.y)
+                    this.animInfo.endXY.x = activeKeyInfo.animeInfo.endXY.x;
+                    this.animInfo.endXY.y = activeKeyInfo.animeInfo.endXY.y;
+                    this.animInfo.hasScrollEffect = activeKeyInfo.animeInfo.hasScrollEffect;
+                    this.animInfo.startSize.width = activeKeyInfo.width;
+                    this.animInfo.startSize.height = activeKeyInfo.height;
+                    this.animInfo.endSize.width = activeKeyInfo.animeInfo.endSize.width;
+                    this.animInfo.endSize.height = activeKeyInfo.animeInfo.endSize.height;
+
+                    return <ScrollSetter
+                                handleSettingFinished={this.handleScrollSettingFinished}
+                                startScrollTop={this.animInfo.startScrollTop}
+                                endScrollTop={this.animInfo.endScrollTop}
+                                startXY={this.animInfo.startXY}
+                                endXY={this.animInfo.endXY}
+                                startSize={this.animInfo.startSize}
+                                endSize={this.animInfo.endSize}
+                                hasScrollEffect={this.animInfo.hasScrollEffect}
+                                index={activeKeyInfo.index}></ScrollSetter>
+                }else{
+                    //没有选中的setter
+                    return <ScrollSetter
+                            handleSettingFinished={null}
+                            startScrollTop={0}
+                            endScrollTop={0}
+                            startXY={{x : 0, y : 0}}
+                            endXY={{x : 0, y : 0}}
+                            startSize={{width : 0, height : 0}}
+                            endSize={{width : 0, height : 0}}
+                            hasScrollEffect={false}
+                            index={null}></ScrollSetter>
                 }
                 
             }}

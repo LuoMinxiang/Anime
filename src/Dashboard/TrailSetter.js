@@ -99,8 +99,6 @@ class TrailSetter extends React.Component{
           }
         }
         this.setState({
-            //selectedColor : this.state.contentInfoArr.length!==0?this.state.contentInfoArr[this.selectedContentIndex && this.selectedContentIndex<this.state.contentInfoArr.length? this.selectedContentIndex : 0].activeKeyColor:"transparent",
-            //selectedText : this.state.contentInfoArr.length!==0?this.state.contentInfoArr[this.selectedContentIndex && this.selectedContentIndex<this.state.contentInfoArr.length? this.selectedContentIndex : 0].activeKeyContent:""
             selectedColor : initialColor,
             selectedText : initialText,
         })
@@ -201,8 +199,11 @@ class TrailSetter extends React.Component{
 
     //点击apply（应用）按钮，将设置好的跟随动效应用在选中的setter或者全局上  
     handleApplyClick = () => {
-      //调用TextAnimPanel传入的函数，设置TextAnimPanel的changingContentArr和changingInterval
+      if(this.props.handleSettingFinished){
+        //调用TextAnimPanel传入的函数，设置TextAnimPanel的changingContentArr和changingInterval
         this.props.handleSettingFinished(this.state.contentInfoArr, this.state.interval, this.state.trailerWidth, this.state.trailerHeight);
+      }
+      
         //广播常变动效设置模式关闭
         EventEmitter.emit("isTrailingSettingOn", false);
     }

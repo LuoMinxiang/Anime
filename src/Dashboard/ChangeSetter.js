@@ -15,6 +15,9 @@ import DialogTitle from '@material-ui/core/DialogTitle';
 import Slide from '@material-ui/core/Slide';
 import Button from '@material-ui/core/Button';
 import Tooltip from '@material-ui/core/Tooltip';
+import FormControlLabel from '@material-ui/core/FormControlLabel';
+import Switch from '@material-ui/core/Switch';
+import Divider from '@material-ui/core/Divider';
 
 import InputSlider from './TimerSetter'
 import Tabbar from './Tabbar'
@@ -50,6 +53,8 @@ class ControlledAccordions extends React.Component{
             interval : this.props.activeKeyInfo === null? null : this.props.activeKeyInfo.animeInfo.changingInterval, //有可能此时没有添加setter
             //记录前一个选中setter的索引，将更新的props中的index和当前index对比，不一样说明切换了setter，要更改contentInfoArr值
             curActiveKey : this.props.activeKeyInfo === null? null : this.props.activeKeyInfo.index,
+            //是否启动走马灯效果
+            setMarquee : false,
         }
         //当前被选中的setter的信息对象
         this.activeKeyInfo = this.props.activeKeyInfo;
@@ -78,6 +83,7 @@ class ControlledAccordions extends React.Component{
         this.handleTextChange = this.handleTextChange.bind(this);
         this.handleSaveClose = this.handleSaveClose.bind(this);
         this.getChipStyleFromIndex = this.getChipStyleFromIndex.bind(this);
+        this.handleSetMarqueeChange = this.handleSetMarqueeChange.bind(this);
 
         //选中要修改的常变动效内容项索引
         this.selectedContentIndex = null;
@@ -275,6 +281,15 @@ class ControlledAccordions extends React.Component{
       }
     }
 
+    //设置走马灯
+    handleSetMarqueeChange(){
+      this.props.handleSetMarqueeFinished(!this.state.setMarquee);
+      this.setState(state => ({
+        setMarquee : !state.setMarquee
+      }))
+
+    }
+
   //下拉面板样式
   detailStyle = {
       display: "flex",
@@ -349,7 +364,19 @@ class ControlledAccordions extends React.Component{
           </AccordionSummary>
           <AccordionDetails style={this.detailStyle}>
               <div>
-              <InputSlider interval={this.state.interval} handleIntervalChange={this.handleIntervalChange}></InputSlider>
+              <FormControlLabel
+                control={
+                  <Switch
+                    checked={this.state.setMarquee}
+                    onChange={this.handleSetMarqueeChange}
+                    name="setMarquee"
+                    color="primary"
+                  />
+                }
+                label="setMarquee"
+              />
+              <Divider />
+              {this.state.setMarquee? null : <div><InputSlider interval={this.state.interval} handleIntervalChange={this.handleIntervalChange}></InputSlider>
               <br/>
               <div style={this.gridContainer}>
           {this.state.contentInfoArr.map((item, index) =>  (typeof(item) === 'undefined' || item === null)?null:
@@ -374,7 +401,9 @@ class ControlledAccordions extends React.Component{
           <br/>
           <Button variant="contained" color="primary" onClick={this.handleApplyClick}>
                 Apply
-          </Button>
+          </Button></div>}
+              
+          
           </div>
           </AccordionDetails>
         </Accordion>

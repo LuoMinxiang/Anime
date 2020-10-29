@@ -20,11 +20,19 @@ class Preview extends React.Component{
             //当前常变动效内容项索引数组（每个setter都有自己的当前内容项索引）
             changingIndex : [],
             //跟随动效
+            //鼠标当前位置
+            mouseTop : 0,
+            //mouseLeft : 0,
             //是否显示跟随
             showTrailer : false,
             //跟随组件的坐标
             trailTop : 0,
             trailLeft : 0,
+            //设置了下滚动效的setter数组
+            scrolledSetterArr : [],
+            canvasHeight : 712,
+            //文字走马灯marginLeft
+            marqueeLeft : 0,
         }
         //常变计时器数组
         this.changingTimers = [];
@@ -51,13 +59,28 @@ class Preview extends React.Component{
         this.originalHeight = null;
         this.originalX = null;
         this.originalY = null;
+
+        //当前页面下滚幅度
+        this.curScrollTop = 0;
+
+        //走马灯div的ref数组
+        this.marqueeRef = [];
+        //走马灯文字填充数组
+        this.marqueeFillingArr = [];
+        //走马灯定时器
+        this.marqueeTimer = [];
+        //走马灯文字宽度数组
+        this.textWidth = [];
         
         this.handleChanging = this.handleChanging.bind(this);
         this.handleMouseMove = this.handleMouseMove.bind(this);
         this.handleMouseOut = this.handleMouseOut.bind(this);
         this.handleMouseEnter = this.handleMouseEnter.bind(this);
-        this.handleMouseLeave = this.handleMouseLeave.bind(this);
+        this.handleMouseLeave = this.handleMouseLeave.bind(this);   
+        this.setMarqueeTimer = this.setMarqueeTimer.bind(this);     
     }
+
+    
     
     componentDidMount(){
         //当预览窗口改变时，按比例改变setter的位置和大小
@@ -72,6 +95,60 @@ class Preview extends React.Component{
             this.wwidth = document.body.clientWidth;
             this.setState({wrate : this.wwidth / wcanvas});
 
+        //监听窗口滚动回调函数：
+        window.onscroll = function(){
+            this.curScrollTop = window.scrollY;
+            //改变鼠标跟随位置
+            this.setState(state => ({
+                trailTop : (state.mouseTop + this.curScrollTop),
+            }));
+            //遍历设置了下滚动效的setter：当前下滚幅度落在下滚动效区间时改变setter位置
+            for(let i = 0;i < this.state.scrolledSetterArr.length;i++){
+                if(this.state.setters[i] !== null && typeof(this.state.setters[i]) !== 'undefined'){
+                    const setterAnimeInfo = this.state.scrolledSetterArr[i].setter.animeInfo;
+                    const originalScrollX = this.state.scrolledSetterArr[i].originalX;
+                    const originalScrollY = this.state.scrolledSetterArr[i].originalY;
+                    const originalScrollWidth = this.state.scrolledSetterArr[i].originalWidth;
+                    const originalScrollHeight = this.state.scrolledSetterArr[i].originalHeight;
+                    const deltaScrollTop = this.curScrollTop - setterAnimeInfo.startScrollTop;
+                    if(this.curScrollTop >= setterAnimeInfo.startScrollTop && this.curScrollTop <= setterAnimeInfo.endScrollTop){
+                        //当前下滚幅度落在下滚动效范围内：改变位置
+                        let arr = this.state.setters;
+                        let setter = arr[i];
+                        setter.x = originalScrollX + setterAnimeInfo.deltaX * this.state.wrate * deltaScrollTop;
+                        setter.y = originalScrollY + setterAnimeInfo.deltaY * this.state.wrate * deltaScrollTop;
+                        //改变大小
+                        setter.width = originalScrollWidth + setterAnimeInfo.deltaWidth * this.state.wrate * deltaScrollTop;
+                        setter.height = originalScrollHeight + setterAnimeInfo.deltaHeight * this.state.wrate * deltaScrollTop;
+                        arr[i] = setter;
+                        this.setState({setters : arr});
+                    }
+                    if(this.curScrollTop <= setterAnimeInfo.startScrollTop){
+                        //下滚幅度小于起点幅度：强行将setter位置设置为初始位置
+                        let arr = this.state.setters;
+                        let setter = arr[i];
+                        setter.x = originalScrollX;
+                        setter.y = originalScrollY;
+                        setter.width = originalScrollWidth;
+                        setter.height = originalScrollHeight;
+                        arr[i] = setter;
+                        this.setState({setters : arr});
+                    }else if(this.curScrollTop >= setterAnimeInfo.endScrollTop){
+                        //下滚幅度大于终点幅度：强行将setter位置设置为终止位置
+                        let arr = this.state.setters;
+                        let setter = arr[i];
+                        const totalScrollTop = setterAnimeInfo.endScrollTop - setterAnimeInfo.startScrollTop;
+                        setter.x = originalScrollX  + setterAnimeInfo.deltaX * this.state.wrate * totalScrollTop;
+                        setter.y = originalScrollY  + setterAnimeInfo.deltaY * this.state.wrate * totalScrollTop;
+                        setter.width = originalScrollWidth  + setterAnimeInfo.deltaWidth * this.state.wrate * totalScrollTop;
+                        setter.height = originalScrollHeight  + setterAnimeInfo.deltaHeight * this.state.wrate * totalScrollTop;
+                        arr[i] = setter;
+                        this.setState({setters : arr});
+                    }
+                }
+                
+            }
+        }.bind(this);
         
         //向后端发出请求，请求所有setter的信息
         //fetch('http://127.0.0.1:8081/setterInfo')
@@ -82,7 +159,7 @@ class Preview extends React.Component{
             //定时器设置
             for(let i = 0;i < data["totalN"];i++){
                 const setter = data["setters"][i];
-                if(setter){
+                if(setter !== null && typeof(setter) !== 'undefined'){
                     //为每个setter设置对应的常变动效
                     //如果设置了常变动效（定时器时间间隔不为0），则设置常变定时器
                     if(setter.animeInfo.changingInterval){
@@ -90,23 +167,60 @@ class Preview extends React.Component{
                         this.changingTimers[i] = setInterval(this.handleChanging(setter), setter.animeInfo.changingInterval * 50);
                         this.state.changingIndex[setter.index] = 0;
                     }
+                    //判断setter有没有设置下滚动效：如果设置了，则放进下滚动效数组中
+                    if(setter.animeInfo.hasScrollEffect){
+                        let arr = [...this.state.scrolledSetterArr];
+                        const scrollInfo = {
+                            setter : setter,
+                            originalX : setter.x,
+                            originalY : setter.y,
+                            originalWidth : setter.width,
+                            originalHeight : setter.height,
+                        }
+                        arr[setter.index] = scrollInfo;
+                        //arr.push(scrollInfo);
+                        this.setState({scrolledSetterArr : arr});
+                    }
+
+                    //设置setter的走马灯动效
+                    //设置走马灯效果改变：判断打开还是关闭
+                    if(setter.animeInfo.setMarquee === true && setter.content !== null && typeof(setter.content) !== 'undefined'){
+                        //打开走马灯效果
+                        //文字内容
+                        const text = setter.content.replace(/<p/g,'<span').replace(/p>/g,'span>');
+                        //容器的宽度
+                        const containerWidth = setter.width;
+                        //在文字宽度的对应index中加1
+                        this.textWidth[setter.index] = 1;
+                        //this.textWidth = this.marqueeRef.scrollWidth;
+                        //计算多少span能填满div，然后把这些span都放进div中
+                        let textNum = 20;
+                        //这里刚刚将marqueeFillArr赋值，渲染的div其实还是空的，故textWidth=0，textNum=infinite，报错Invalid string length
+                        this.marqueeFillingArr[setter.index] = "";
+                        if(textNum < 1) textNum = 1;
+                        for(let i = 0;i<textNum;i++){
+                            this.marqueeFillingArr[setter.index] += text;
+                        }
+                    }else{
+                        //关闭走马灯效果
+                        if(this.marqueeTimer[setter.index]){
+                            clearInterval(this.marqueeTimer[setter.index]);
+                        }
+                    }
                 }
             }
             this.setState({
                 totalSetter: data["totalN"],
                 setters : data["setters"]
-            }, ()=>{
-                console.log("setState done!");
             })
         })
-        .catch(e => console.log('错误:', e))   
+        .catch(e => console.log('错误:', e)) 
      
         //从数据库中取出画布信息
         //json-server测试地址
         fetch('http://127.0.0.1:3000/canvasInfo')
         .then(res => res.json())
         .then(data => {
-            console.log("preview - canvasInfo - data = " + data);
             //设置画布跟随动效
             this.canvasInfo.trailingContentArr = [...data.trailingContentArr];
             this.canvasInfo.trailingInterval = data.trailingInterval;
@@ -115,19 +229,30 @@ class Preview extends React.Component{
             //监听全局鼠标移动
             window.onmousemove = function(event){
                 //设置画布的跟随组件信息
-                console.log("preview - window - onmousemove");
                 this.trailInfo.trailerHeight = this.canvasInfo.trailerHeight;
                 this.trailInfo.trailerWidth = this.canvasInfo.trailerWidth;
                 this.trailInfo.trailingContentArr = this.canvasInfo.trailingContentArr;
                 this.trailInfo.trailingInterval = this.canvasInfo.trailingInterval;
                 this.setState({
-                    trailTop : (event.clientY),
+                    trailTop : (event.clientY + this.curScrollTop),
                     trailLeft : (event.clientX),
-                    showTrailer : true
+                    showTrailer : true,
+                    mouseTop : event.clientY,
                 })
             }.bind(this);
         })
         .catch(e => console.log('错误:', e))  
+
+        //从数据库中取出画布高度
+        //json-server测试地址
+        fetch('http://127.0.0.1:3000/canvasLength')
+        .then(res => res.json())
+        .then(data => {
+            //设置画布高度
+            this.setState({canvasHeight : data.canvasHeight});
+        })
+        .catch(e => console.log('错误:', e)) 
+        
     }
 
     componentWillUnmount(){
@@ -137,6 +262,19 @@ class Preview extends React.Component{
                 clearInterval(this.changingTimers[i]);
             }
         }
+    }
+
+    setMarqueeTimer(index){
+        if(this.state.setters[index].animeInfo.setMarquee){
+            //设置了走马灯动效：检查是否开过计时器，如果没有就开一个；有就不管
+            if(this.marqueeTimer[index] === null || typeof(this.marqueeTimer[index]) === 'undefined'){
+                //没开过计时器：开一个
+                this.marqueeTimer[index] = setInterval(() => {
+                    this.setState(state=>({marqueeLeft : ((state.marqueeLeft - 1) % this.textWidth[index])}));
+                  },10);
+            }
+        }
+
     }
 
     //改变当前的常变动效内容项索引
@@ -181,7 +319,7 @@ class Preview extends React.Component{
             this.trailInfo.trailingContentArr = this.state.setters[index].animeInfo.trailingContentArr;
             this.trailInfo.trailingInterval = this.state.setters[index].animeInfo.trailingInterval;
             this.setState({
-                trailTop : (event.clientY),
+                trailTop : (event.clientY + this.curScrollTop),
                 trailLeft : (event.clientX),
                 showTrailer : true
             })
@@ -234,7 +372,6 @@ class Preview extends React.Component{
         for(let i = 0;i < this.state.totalSetter;i++){
             const setter = this.state.setters[i];
             if(setter){
-                //console.log(setter.content);
                 //当setter的宽高值是带单位px的字符串时，去掉单位并转换为浮点数
             if(typeof(setter.width) == "string"){
                 let index = setter.width.lastIndexOf("p")
@@ -280,20 +417,54 @@ class Preview extends React.Component{
                 //flexDirection: 'column',
                 //justifyContent:'center',
         };
+
+            //设置走马灯setter样式
+            const marqueeStyle = {
+                marginLeft : this.state.marqueeLeft,
+                padding : 0,
+                display : "inline-block",
+                //background : "red",
+          }
+          
+        const containerStyle = {
+            width: setter.width * this.state.wrate,
+            height: setter.height * this.state.wrate,
+            left: setter.x * this.state.wrate,
+            top: setter.y * this.state.wrate,
+            background: Color2Str(setter.color),
+            position : "absolute",
+            overflow : "hidden",
+            whiteSpace : "nowrap",
+        }
+
         divStyles[setter.index] = setterStyle;
         //设置setter的动效并将setter放进数组里
         const reveal = setter.animeInfo.reveal;
         const setterText = contentText;
-        const basicComponent = 
-        <div 
-            style={setterStyle} 
-            dangerouslySetInnerHTML={{__html:setterText}}
-            onMouseMove={(event) => this.handleMouseMove(setter.index, event)}
-            onMouseOut={this.handleMouseOut}
-            onMouseEnter={() => this.handleMouseEnter(setter.index)}
-            onMouseLeave={() => this.handleMouseLeave(setter.index)}
+        let basicComponent = null;
+        if(setter.animeInfo.setMarquee){
+            //走马灯动效与其他动效不同时使用
+            basicComponent = <div style={containerStyle}><div 
+                    ref={element => this.marqueeRef[setter.index] = element} 
+                    style={marqueeStyle} 
+                    dangerouslySetInnerHTML={{__html:(setter.content !== null && typeof(setter.content) !== 'undefined') ? setter.content.replace(/<p/g,'<span').replace(/p>/g,'span>') + this.marqueeFillingArr[setter.index] : setter.content}}></div></div>
+            if(this.marqueeRef[setter.index] !== null && typeof(this.marqueeRef[setter.index]) !== 'undefined'){
+                this.textWidth[setter.index] = this.marqueeRef[setter.index].scrollWidth;
+                this.setMarqueeTimer(setter.index);
+            }
+            
+        }else{
+            basicComponent = <div 
+                    style={setterStyle} 
+                    dangerouslySetInnerHTML={{__html:setterText}}
+                    onMouseMove={(event) => this.handleMouseMove(setter.index, event)}
+                    onMouseOut={this.handleMouseOut}
+                    onMouseEnter={() => this.handleMouseEnter(setter.index)}
+                    onMouseLeave={() => this.handleMouseLeave(setter.index)}
         >            
         </div>
+        }
+        
         let revealComponent = basicComponent;
         switch(reveal){
             case "Zoom":
@@ -313,11 +484,22 @@ class Preview extends React.Component{
             background : "red"
         }
 
+        const lengthDivStyle = {
+            background : "red",
+            height: "1px",
+            width: "1px",
+            position : "absolute",
+            top : this.state.canvasHeight * this.state.wrate,
+            left : 0
+          }
+
         return (
             //按样式动态生成setter
             <div 
             style={divStyle}
             >
+                {/* 控制画布组件高度的看不见div */}
+                <div style={lengthDivStyle}></div>
             {this.state.setters.map((item,index) => typeof(item) === undefined?null:
                 animatedSetters[index])
             }
