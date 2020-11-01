@@ -99,12 +99,13 @@ class Trailer extends React.Component{
             clearInterval(this.timer);
         }
     }
-    render(){
+    render(){        
         //删除chip后不调用计时器函数避免
         //求跟随组件的背景：如果firstNotNullContentKey为trailingContentArr的长度，则没有非空的内容项，设置颜色为透明，设置内容为空字符串
         //删除chip后componentDidUpdate不调用：可能this.state.index为空内容项的下标
         let contentBg = "transparent";
         let contentText = "";
+        let contentPic = '';
         let contentArr = [];
         let firstNotNullContentKey = 0;
         if(this.props.trailInfo){
@@ -115,17 +116,17 @@ class Trailer extends React.Component{
                 if(contentArr.length > 0 && contentArr[this.state.index] !== null && typeof(contentArr[this.state.index]) !== 'undefined'){
                     contentBg = Color2Str(contentArr[this.state.index<contentArr.length?this.state.index:firstNotNullContentKey].activeKeyColor);
                     contentText = contentArr[this.state.index<contentArr.length?this.state.index:firstNotNullContentKey].activeKeyContent;
+                    contentPic = contentArr[this.state.index<contentArr.length?this.state.index:firstNotNullContentKey].activeKeyPic;
                 }else if(contentArr.length > 0 && (contentArr[this.state.index] === null || typeof(contentArr[this.state.index]) === 'undefined')){
                     //当前内容下标对应内容为空：设置为第一个非空内容项
                     contentBg = Color2Str(contentArr[firstNotNullContentKey].activeKeyColor);
                     contentText = contentArr[firstNotNullContentKey].activeKeyContent;
+                    contentPic = contentArr[firstNotNullContentKey].activeKeyPic;
                     this.setState({index : firstNotNullContentKey});
                 }
             } 
         }
         
-        
-
         const divStyle = {
             visibility : this.props.visibility?"visible":"hidden",
             position:"absolute",
@@ -135,11 +136,31 @@ class Trailer extends React.Component{
             height : this.props.trailInfo?this.props.trailInfo.trailerHeight:0,
             background : contentBg
         }
-        return (
-            <div 
+
+        const imgStyle = {
+            visibility : this.props.visibility?"visible":"hidden",
+            position:"absolute",
+            top : this.props.top + 10, 
+            left : this.props.left + 10,
+            display : "block",
+            width : this.props.trailInfo?this.props.trailInfo.trailerWidth:0,
+            height : this.props.trailInfo?this.props.trailInfo.trailerHeight:0,
+        }
+
+        let trailer = null;
+
+        if(contentPic !== ''){
+            //是图片跟随组件：返回img
+            trailer = <img src={contentPic} style={imgStyle}></img>
+        }else{
+            //是文字跟随组件：返回div
+            trailer = <div 
                 dangerouslySetInnerHTML={{__html:contentText}}
                 style={divStyle}>
             </div>
+        }
+        return (
+            trailer
         )
     }
 }

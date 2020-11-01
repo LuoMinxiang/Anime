@@ -3,6 +3,10 @@ import { Tab, Tabs, TabList, TabPanel } from 'react-tabs';
 import 'react-tabs/style/react-tabs.css';
 import { SketchPicker } from 'react-color'
 import { Editor } from '@tinymce/tinymce-react';
+import ImageLoader from '../ImageLoader/ImageLoader'
+import InputLabel from '@material-ui/core/InputLabel';
+import MenuItem from '@material-ui/core/MenuItem';
+import Select from '@material-ui/core/Select';
 
 //弹出设置窗口中的跟随动效设置tabbar
 
@@ -10,9 +14,39 @@ import { Editor } from '@tinymce/tinymce-react';
 const apiKey = 'qagffr3pkuv17a8on1afax661irst1hbr4e6tbv888sz91jc';
 
 class TrailingSettingTabbar extends React.Component{
+  constructor(props){
+    super(props);
+    this.state = {
+      contentType : "text",
+    }
+    this.handleContentTypeChange = this.handleContentTypeChange.bind(this);
+  }
+
+  handleContentTypeChange(event){
+    this.setState({
+      contentType : event.target.value,
+    })
+  }
+
     render(){
         return (
-            <Tabs defaultIndex={0}>
+          <div>
+            <InputLabel>Content Type</InputLabel>
+            <Select
+              style={{width : "100%"}}
+              value={this.state.contentType}
+              onChange={this.handleContentTypeChange}
+            >
+            <MenuItem value={"text"}>Edit Text</MenuItem>
+            <MenuItem value={"image"}>Upload Image</MenuItem>
+            </Select>
+            {this.state.contentType === "image"?
+            <ImageLoader
+              handleImageUploaded={this.props.handleImageUploaded}
+              setterWidth={this.props.width}
+              setterHeight={this.props.height}
+              setterPic={this.props.pic}
+            ></ImageLoader>:<Tabs defaultIndex={0}>
             <TabList>
               <Tab>Color</Tab>
               <Tab>Content</Tab>
@@ -67,7 +101,9 @@ class TrailingSettingTabbar extends React.Component{
               onEditorChange={this.props.onTextChanged}
             />
             </TabPanel>
-          </Tabs>
+          </Tabs>}
+            
+          </div>
         );
     }
 }

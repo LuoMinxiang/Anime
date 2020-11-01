@@ -101,8 +101,9 @@ class Tabbar extends React.Component{
       //在常变动效设置模式时，如果切换到其他tab，就关掉常变动效设置模式
       <Tabs selectedIndex={this.state.tabIndex} onSelect={index => this.setTabIndex(index)}>
     <TabList>
-      <Tab>Color</Tab>
-      <Tab>Content</Tab>
+    <Tab>Color</Tab>
+      {this.props.contentType === "text"? <Tab>Content</Tab> : null}
+      
       {this.props.anime? <Tab>Animation</Tab> : null }
     </TabList>
 
@@ -121,13 +122,13 @@ class Tabbar extends React.Component{
       }}
     </ActiveKeyInfoContext.Consumer>
     </TabPanel>
+    {this.props.contentType === "text"? 
     <TabPanel>
     <ActiveKeyInfoContext.Consumer>
             {(activeKeyInfo) => {
-              //alert("Tabbar got activeKeyInfo!!! " + (activeKeyInfo !== null? activeKeyInfo.totalN : null));
               if(this.props.anime){
                 //主设置栏：初始值为Hello，World
-                return <TinymceEditor text="<b>Hello World</b>"></TinymceEditor>
+                return <TinymceEditor text="<p>Hello World</p>"></TinymceEditor>
               }else{
                 //设置常变动效内容，文本为传入参数的文本
                 return <TinymceEditor text={this.props.text} onTextChanged={this.props.onTextChanged}></TinymceEditor>
@@ -135,10 +136,11 @@ class Tabbar extends React.Component{
       
       }}
     </ActiveKeyInfoContext.Consumer>
-    </TabPanel>
+    </TabPanel> : null}
+    
     {this.props.anime? 
       <TabPanel>
-          <TextAnimPanel></TextAnimPanel>
+          <TextAnimPanel contentType={this.props.contentType}></TextAnimPanel>
     </TabPanel> :
     null}
     <WarningDialog

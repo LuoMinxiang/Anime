@@ -4,6 +4,8 @@ import Fade from 'react-reveal/Fade';
 import {Color2Str} from '../Utils/Color2Str'
 import {GetFirstNotNullKey} from '../Utils/GetFirstNotNullKey'
 import Trailer from '../Trailer/Trailer'
+import './Preview.css'
+import {ResizeFontSizeinHTMLStr} from '../Utils/ResizeFontSizeinHTMLStr'
 
 //预览界面
 
@@ -33,6 +35,9 @@ class Preview extends React.Component{
             canvasHeight : 712,
             //文字走马灯marginLeft
             marqueeLeft : 0,
+
+            //记录图片setter的图片宽高和位置的数组
+            picSetterInfoArr : [],
         }
         //常变计时器数组
         this.changingTimers = [];
@@ -71,6 +76,11 @@ class Preview extends React.Component{
         this.marqueeTimer = [];
         //走马灯文字宽度数组
         this.textWidth = [];
+        //获取走马灯初始字符串的div数组
+        this.marqueeTestArr = [];
+
+        this.resized = false;
+
         
         this.handleChanging = this.handleChanging.bind(this);
         this.handleMouseMove = this.handleMouseMove.bind(this);
@@ -94,6 +104,7 @@ class Preview extends React.Component{
             let wcanvas = 1200;
             this.wwidth = document.body.clientWidth;
             this.setState({wrate : this.wwidth / wcanvas});
+            ResizeFontSizeinHTMLStr(this.wwidth / wcanvas, document);
 
         //监听窗口滚动回调函数：
         window.onscroll = function(){
@@ -104,7 +115,9 @@ class Preview extends React.Component{
             }));
             //遍历设置了下滚动效的setter：当前下滚幅度落在下滚动效区间时改变setter位置
             for(let i = 0;i < this.state.scrolledSetterArr.length;i++){
-                if(this.state.setters[i] !== null && typeof(this.state.setters[i]) !== 'undefined'){
+                //console.log("preview - this.state.scrolledSetterArr.length = " + this.state.scrolledSetterArr.length);
+                if(this.state.setters[i] !== null && typeof(this.state.setters[i]) !== 'undefined' && typeof(this.state.scrolledSetterArr[i])!=='undefined'){
+                    //console.log("preview - this.state.scrolledSetterArr[" + i + "] = " + this.state.scrolledSetterArr[i]);
                     const setterAnimeInfo = this.state.scrolledSetterArr[i].setter.animeInfo;
                     const originalScrollX = this.state.scrolledSetterArr[i].originalX;
                     const originalScrollY = this.state.scrolledSetterArr[i].originalY;
@@ -138,12 +151,13 @@ class Preview extends React.Component{
                         let arr = this.state.setters;
                         let setter = arr[i];
                         const totalScrollTop = setterAnimeInfo.endScrollTop - setterAnimeInfo.startScrollTop;
-                        setter.x = originalScrollX  + setterAnimeInfo.deltaX * this.state.wrate * totalScrollTop;
-                        setter.y = originalScrollY  + setterAnimeInfo.deltaY * this.state.wrate * totalScrollTop;
-                        setter.width = originalScrollWidth  + setterAnimeInfo.deltaWidth * this.state.wrate * totalScrollTop;
-                        setter.height = originalScrollHeight  + setterAnimeInfo.deltaHeight * this.state.wrate * totalScrollTop;
+                        setter.x = originalScrollX  + setterAnimeInfo.deltaX * totalScrollTop;
+                        setter.y = originalScrollY  + setterAnimeInfo.deltaY* totalScrollTop;
+                        setter.width = originalScrollWidth  + setterAnimeInfo.deltaWidth * totalScrollTop;
+                        setter.height = originalScrollHeight  + setterAnimeInfo.deltaHeight * totalScrollTop;
                         arr[i] = setter;
                         this.setState({setters : arr});
+                        console.log("preview - onscroll - setter.y = " + setter.y);
                     }
                 }
                 
@@ -182,6 +196,27 @@ class Preview extends React.Component{
                         this.setState({scrolledSetterArr : arr});
                     }
 
+                    const marqueeContainerStyle = {
+                        width: setter.width * this.state.wrate,
+                        position : "absolute",
+                        overflow : "hidden",
+                        whiteSpace : "nowrap",
+                        visibility : "hidden",
+                        margin : 0,
+                        padding : 0
+                    }
+
+                    
+                        //设置走马灯setter样式
+                        const marqueeStyle = {
+                            margin : 0,
+                            padding : 0,
+                            padding : 0,
+                            display : "inline-block",
+                            visibility : "none"
+                    }
+
+
                     //设置setter的走马灯动效
                     //设置走马灯效果改变：判断打开还是关闭
                     if(setter.animeInfo.setMarquee === true && setter.content !== null && typeof(setter.content) !== 'undefined'){
@@ -201,13 +236,35 @@ class Preview extends React.Component{
                         for(let i = 0;i<textNum;i++){
                             this.marqueeFillingArr[setter.index] += text;
                         }
+                        this.marqueeTestArr[setter.index] = 
+                            <div style={marqueeContainerStyle}>
+                                <div style={marqueeStyle} 
+                                     ref={ref => this.marqueeRef[setter.index] = ref}
+                                     dangerouslySetInnerHTML={{__html:text}}
+                      ></div></div>
                     }else{
                         //关闭走马灯效果
                         if(this.marqueeTimer[setter.index]){
                             clearInterval(this.marqueeTimer[setter.index]);
                         }
                     }
+
+                    //将图片setter的宽高和位置信息放入图片setter信息数组
+                    //if(setter.pic !== ''){
+                        //是图片组件
+                        let arr = [...this.state.picSetterInfoArr];
+                        arr[setter.index] = {
+                            picWidth : setter.width,
+                            picHeight : setter.height,
+                            picTop : 0,
+                            picLeft : 0,
+                        }
+                        this.setState({
+                            picSetterInfoArr : arr,
+                        })
+                    //}
                 }
+
             }
             this.setState({
                 totalSetter: data["totalN"],
@@ -335,54 +392,91 @@ class Preview extends React.Component{
         this.setState({showTrailer : false});
       }
 
-    //悬停：鼠标进入（不冒泡）
+    //悬停：鼠标进入（不冒泡）：文字缩放
     handleMouseEnter(index){
         this.hoveredSetterIndex = index;
         const setter = this.state.setters[index];
-        this.originalWidth = setter.width;
-        this.originalHeight = setter.height;
-        this.originalX = setter.x;
-        this.originalY = setter.y;
-        setter.x = setter.x - (setter.width * setter.animeInfo.hoverScale - setter.width) / 2;
-        setter.y = setter.y - (setter.height * setter.animeInfo.hoverScale - setter.height) / 2;
-        setter.height = setter.height * setter.animeInfo.hoverScale;
-        setter.width = setter.width * setter.animeInfo.hoverScale;
-        this.state.setters[index] = setter;
+        const hoverScale = setter.animeInfo.hoverScale;
+        if(setter.animeInfo.hoverScalePicOnly){
+            //只缩放图片不缩放框
+            let arr = [...this.state.picSetterInfoArr];
+            const setterPicInfo = arr[setter.index];
+            setterPicInfo.picWidth *= 1.2; //hoverScale;
+            setterPicInfo.picHeight *= 1.2; //hoverScale;
+            setterPicInfo.picTop = -(setterPicInfo.picWidth - setter.width) / 2;
+            setterPicInfo.picLeft = -(setterPicInfo.picHeight - setter.height) / 2;
+            this.setState({
+                picSetterInfoArr : arr,
+            })
+        }else{
+            //缩放框
+            this.originalWidth = setter.width;
+            this.originalHeight = setter.height;
+            this.originalX = setter.x;
+            this.originalY = setter.y;
+            setter.x = setter.x - (setter.width * setter.animeInfo.hoverScale - setter.width) / 2;
+            setter.y = setter.y - (setter.height * setter.animeInfo.hoverScale - setter.height) / 2;
+            setter.height = setter.height * setter.animeInfo.hoverScale;
+            setter.width = setter.width * setter.animeInfo.hoverScale;
+            this.state.setters[index] = setter;
+        }
+        
     }
 
-    //悬停：鼠标退出（冒泡）
+    //悬停：鼠标退出（冒泡）：文字缩放
     handleMouseLeave(index){
         this.hoveredSetterIndex = null;
         const setter = this.state.setters[index];
-        setter.x = this.originalX;
-        setter.y = this.originalY;
-        setter.height = this.originalHeight;
-        setter.width = this.originalWidth;
-        this.state.setters[index] = setter;
+        if(setter.animeInfo.hoverScalePicOnly){
+            //只缩放图片不缩放框
+            let arr = [...this.state.picSetterInfoArr];
+            const setterPicInfo = arr[setter.index];
+            setterPicInfo.picWidth = setter.width;
+            setterPicInfo.picHeight = setter.height;
+            setterPicInfo.picTop = 0;
+            setterPicInfo.picLeft = 0;
+            this.setState({
+                picSetterInfoArr : arr,
+            })
+        }else{
+            setter.x = this.originalX;
+            setter.y = this.originalY;
+            setter.height = this.originalHeight;
+            setter.width = this.originalWidth;
+            this.state.setters[index] = setter;
+        }
+        
     }
 
     render(){
+        if(!this.resized && document.getElementsByTagName('span').length !== 0){
+            ResizeFontSizeinHTMLStr(this.state.wrate, document);
+            this.resized = true
+        }
         //所有setter的样式数组
         const divStyles = [];
 
         //加了动效的setter数组
         const animatedSetters = [];
 
-        //使用从后端得到的数据设置所有setter的样式和动效
-        for(let i = 0;i < this.state.totalSetter;i++){
+        //使用从后端得到的数据设置文字setter的样式和动效
+        for(let i = 0;i < this.state.setters.length;i++){
             const setter = this.state.setters[i];
             if(setter){
                 //当setter的宽高值是带单位px的字符串时，去掉单位并转换为浮点数
+                /*
             if(typeof(setter.width) == "string"){
                 let index = setter.width.lastIndexOf("p")
                 setter.width =parseFloat(setter.width.substring(0,index));
                 index = setter.height.lastIndexOf("p");
                 setter.height = parseFloat(setter.height.substring(0,index));
             }
+            */
 
             //确定setter的颜色和文字：考虑全空的常变数组（长度不为0，全部删除）、空的常变数组内容项
             let contentBg = Color2Str(setter.color);
             let contentText = setter.content;
+            let contentPic = setter.pic;
             let contentArr = [];
             let firstNotNullContentKey = 0;
             if(setter.animeInfo.changingInterval){
@@ -393,9 +487,11 @@ class Preview extends React.Component{
                     if(contentArr.length > 0 && this.state.changingIndex[setter.index] < contentArr.length && contentArr[this.state.changingIndex[setter.index]] !== null){
                         contentBg = Color2Str(contentArr[this.state.changingIndex[setter.index]].activeKeyColor);
                         contentText = contentArr[this.state.changingIndex[setter.index]].activeKeyContent;
+                        contentPic = contentArr[this.state.changingIndex[setter.index]].activeKeyPic;
                     }else if(contentArr.length > 0 && this.state.changingIndex[setter.index] < contentArr.length && contentArr[this.state.changingIndex[setter.index]] === null){
                         contentBg = Color2Str(contentArr[firstNotNullContentKey].activeKeyColor);
                         contentText = contentArr[firstNotNullContentKey].activeKeyContent;
+                        contentPic = contentArr[firstNotNullContentKey].activeKeyPic;
                         let indexArr = [...this.state.changingIndex];
                         indexArr[setter.index] = firstNotNullContentKey;
                         this.setState({changingIndex : indexArr});
@@ -412,6 +508,8 @@ class Preview extends React.Component{
                 top: setter.y * this.state.wrate,
                 background: setterColor,
                 position : "absolute",
+                overflow : setter.animeInfo.setMarquee? "hidden":"none",
+                whiteSpace : setter.animeInfo.setMarquee?"nowrap":"normal",
                 //默认不居中，只有内容设置居中才居中
                 //display : "flex",
                 //flexDirection: 'column',
@@ -433,8 +531,8 @@ class Preview extends React.Component{
             top: setter.y * this.state.wrate,
             background: Color2Str(setter.color),
             position : "absolute",
-            overflow : "hidden",
-            whiteSpace : "nowrap",
+            overflow : setter.animeInfo.setMarquee? "hidden":"none",
+            whiteSpace : setter.animeInfo.setMarquee?"nowrap":"normal",
         }
 
         divStyles[setter.index] = setterStyle;
@@ -442,18 +540,53 @@ class Preview extends React.Component{
         const reveal = setter.animeInfo.reveal;
         const setterText = contentText;
         let basicComponent = null;
-        if(setter.animeInfo.setMarquee){
+        if(contentPic !== ''){
+            //是图片组件
+
+            //图片样式
+            const setterPicInfo = this.state.picSetterInfoArr[setter.index];
+            //悬停只缩放图片，不缩放整个布局框大小的图片style
+            const imgHoverScalePicOnlyStyle = {
+                width : setterPicInfo.picWidth * this.state.wrate,
+                //height : this.state.picHeight,
+                top : setterPicInfo.picTop * this.state.wrate,
+                left : setterPicInfo.picLeft * this.state.wrate,
+                position : "absolute"
+                
+            }
+        
+            const imgNormalStyle = {
+                width : "100%",
+            }
+
+            basicComponent = <div 
+                style={setterStyle} 
+                onMouseMove={(event) => this.handleMouseMove(setter.index, event)}
+                onMouseOut={this.handleMouseOut}
+                onMouseEnter={() => this.handleMouseEnter(setter.index)}
+                onMouseLeave={() => this.handleMouseLeave(setter.index)}> 
+                <img 
+                    style={setter.animeInfo.hoverScalePicOnly? imgHoverScalePicOnlyStyle : imgNormalStyle}
+                    src={contentPic} 
+                    alt="failed to load picture:(" 
+                    //width="100%"
+                    />           
+            </div>
+        }else if(setter.animeInfo.setMarquee){
+            //是文字组件，且有走马灯动效
             //走马灯动效与其他动效不同时使用
             basicComponent = <div style={containerStyle}><div 
-                    ref={element => this.marqueeRef[setter.index] = element} 
+                    //ref={element => this.marqueeRef[setter.index] = element} 
                     style={marqueeStyle} 
                     dangerouslySetInnerHTML={{__html:(setter.content !== null && typeof(setter.content) !== 'undefined') ? setter.content.replace(/<p/g,'<span').replace(/p>/g,'span>') + this.marqueeFillingArr[setter.index] : setter.content}}></div></div>
             if(this.marqueeRef[setter.index] !== null && typeof(this.marqueeRef[setter.index]) !== 'undefined'){
                 this.textWidth[setter.index] = this.marqueeRef[setter.index].scrollWidth;
                 this.setMarqueeTimer(setter.index);
             }
+
             
         }else{
+            //是文字组件，且无走马灯动效
             basicComponent = <div 
                     style={setterStyle} 
                     dangerouslySetInnerHTML={{__html:setterText}}
@@ -464,6 +597,7 @@ class Preview extends React.Component{
         >            
         </div>
         }
+        
         
         let revealComponent = basicComponent;
         switch(reveal){
@@ -479,8 +613,10 @@ class Preview extends React.Component{
             }
 
         const divStyle = {
-            width : "100%",
-            height : "100%",
+            width : this.wwidth,
+            //height : "100%",
+            overflowX : "hidden",
+            overflowY : "scroll",
             background : "red"
         }
 
@@ -492,14 +628,18 @@ class Preview extends React.Component{
             top : this.state.canvasHeight * this.state.wrate,
             left : 0
           }
-
+          //console.log("preview - lengthDivStyle - this.state.canvasHeight = " + this.state.canvasHeight);
         return (
             //按样式动态生成setter
+            <body style={{overflowX : "hidden"}}>
             <div 
             style={divStyle}
             >
                 {/* 控制画布组件高度的看不见div */}
                 <div style={lengthDivStyle}></div>
+                {/* 获取走马灯初始文字宽度的div */}
+                {this.marqueeTestArr.map(item => item)}
+
             {this.state.setters.map((item,index) => typeof(item) === undefined?null:
                 animatedSetters[index])
             }
@@ -507,18 +647,32 @@ class Preview extends React.Component{
                 if(typeof(item) === 'undefined' || item === null){
                     return null
                 }else{
-                    const hoverStyle = {
-                    width : item.width * this.state.wrate,
-                    height : item.height * this.state.wrate,
-                    position : "absolute",
-                    left: item.left * this.state.wrate,
-                    top: item.top * this.state.wrate,
-                    background : Color2Str(item.activeKeyColor),
-                }
-                return <div 
+                    if(item.activeKeyPic !== ''){
+                        //是图片组件
+                        const hoverStyle = {
+                            width : item.width * this.state.wrate,
+                            height : item.height * this.state.wrate,
+                            position : "absolute",
+                            left: item.left * this.state.wrate,
+                            top: item.top * this.state.wrate,
+                            overflow : "hidden",
+                        }
+                        return <div style={hoverStyle}><img src={item.activeKeyPic}  /></div>
+                    }else{
+                        //是文字组件
+                        const hoverStyle = {
+                            width : item.width * this.state.wrate,
+                            height : item.height * this.state.wrate,
+                            position : "absolute",
+                            left: item.left * this.state.wrate,
+                            top: item.top * this.state.wrate,
+                            background : Color2Str(item.activeKeyColor),
+                        }
+                        return <div 
                         style={hoverStyle}
                         dangerouslySetInnerHTML={{__html: item.activeKeyContent}}
-                ></div>
+                        ></div>
+                    }                
                 }
                 
             }):null}
@@ -528,7 +682,7 @@ class Preview extends React.Component{
                     trailInfo={this.trailInfo}
                     visibility={this.state.showTrailer}
                 ></Trailer>
-            </div>
+            </div></body>
         );
     }
 }

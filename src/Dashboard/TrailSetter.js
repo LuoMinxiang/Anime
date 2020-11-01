@@ -42,11 +42,13 @@ class TrailSetter extends React.Component{
             selectedColor : "transparent",
             //对选中的一项内容设置的文字：初始值为空字符串 - 必须设置为state不然修改后不会引起render，colorPicker的值不会改变
             selectedText : "",
+            //对选中的一项内容设置的图片：初始值为空字符串
+            selectedPic : '',
             //跟随组件的宽高
             trailerWidth : this.props.trailerWidth,
             trailerHeight : this.props.trailerHeight,
 
-            //跟随内容/颜色数组：跟随组件内容初始值为空
+            //跟随内容/颜色/图片数组：跟随组件内容初始值为空。如果isPic为true，该内容为图片
             contentInfoArr : [],
             //跟随定时器时间间隔：0表示不定时
             interval : 0,
@@ -60,6 +62,8 @@ class TrailSetter extends React.Component{
 
         //判断弹出设置窗口后是否修改了选中的内容项的文字，只有修改了点击save才需要将设置的内容存入内容数组
         this.isTextChanged = false;
+        //判断弹出设置窗口后是否修改了选中内容项的图片，只有修改了点击save才需要将设置的内容存入内容数组
+        this.isPicChanged = false;
         //提示or设置窗口的文字内容
         this.dialogContent = "Set the color and content of this trail content.";
         //设置窗口的文字内容
@@ -72,8 +76,8 @@ class TrailSetter extends React.Component{
         this.handleSaveClose = this.handleSaveClose.bind(this);
         this.getChipStyleFromIndex = this.getChipStyleFromIndex.bind(this);
         this.resetColorText = this.resetColorText.bind(this);
-        this.setColorText = this.setColorText.bind(this);
         this.handleTrailerSizeChange = this.handleTrailerSizeChange.bind(this);
+        this.handlePicChange = this.handlePicChange.bind(this);
 
         //选中要修改的常变动效内容项索引
         this.selectedContentIndex = null;
@@ -89,6 +93,7 @@ class TrailSetter extends React.Component{
         //设置colorPicker和editor的初始值为选中内容的颜色和文字。如果是刚刚添加的chip就设置为透明和空字符串
         let initialColor = "transparent";
         let initialText = "";
+        let initialPic = '';
         if(this.state.contentInfoArr.length!==0){
           //有跟随内容数组
           //判断跟随内容项是否为空(删除后选中内容项下标置为0，但是0也删除了)，或跟随内容项下标是否为内容数组长度（刚刚添加还没来得及异步修改）
@@ -96,20 +101,24 @@ class TrailSetter extends React.Component{
             //但是有可能添加chip刚刚将初始值放进state的内容数组中还没来得及异步修改，此时也保持透明和空字符串
             initialColor = this.state.contentInfoArr[this.selectedContentIndex].activeKeyColor;
             initialText = this.state.contentInfoArr[this.selectedContentIndex].activeKeyContent;
+            initialPic = this.state.contentInfoArr[this.selectedContentIndex].activeKeyPic;
           }
         }
         this.setState({
             selectedColor : initialColor,
             selectedText : initialText,
+            selectedPic : initialPic,
         })
     }
     //设置颜色和文字
+    /*
     setColorText(color, text){
         this.setState({
             selectedColor : color,
             selectedText : text
         })
     }
+    */
 
     
     //监听props（选中setter）的改变，并在改变时更新对应的动效内容数组和常变定时
@@ -151,6 +160,7 @@ class TrailSetter extends React.Component{
             contentInfo.name = 'Content' + this.state.contentInfoArr.length;
             contentInfo.activeKeyColor = "transparent";
             contentInfo.activeKeyContent = "";
+            contentInfo.activeKeyPic = '';
             //将新添加的内容项加入跟随内容数组
             arr.push(contentInfo);
             this.setState({contentInfoArr : arr});
@@ -188,6 +198,7 @@ class TrailSetter extends React.Component{
       this.setState({open : false});
       this.isColorChanged = false;
       this.isTextChanged = false;
+      this.isPicChanged = false;
     };
 
     //点击设置跟随动效按钮打开或收起设置面板时调用
@@ -201,7 +212,7 @@ class TrailSetter extends React.Component{
     handleApplyClick = () => {
       if(this.props.handleSettingFinished){
         //调用TextAnimPanel传入的函数，设置TextAnimPanel的changingContentArr和changingInterval
-        this.props.handleSettingFinished(this.state.contentInfoArr, this.state.interval, this.state.trailerWidth, this.state.trailerHeight);
+        this.props.handleSettingFinished(this.state.contentInfoArr, this.state.interval, this.state.trailerWidth, this.state.trailerHeight, this.state.picArr);
       }
       
         //广播常变动效设置模式关闭
@@ -232,6 +243,14 @@ class TrailSetter extends React.Component{
       this.isTextChanged = true;
     }
 
+    //在imageLoader中设置指定序号内容的图片
+    handlePicChange(pic){
+      //在ImageLoader中的图片被修改了
+      this.setState({
+        selectedPic : pic,
+      })
+      this.isPicChanged = true;
+    }
     handleTrailerSizeChange(e, direction, ref, d){
         this.setState(state =>({
             trailerWidth : state.trailerWidth + d.width,
@@ -261,10 +280,19 @@ class TrailSetter extends React.Component{
           contentInfoArr : arr
         })
       }
+      if(this.isPicChanged){
+        let arr = [...this.state.contentInfoArr];
+        let contentInfo = arr[this.selectedContentIndex];
+        contentInfo.activeKeyPic = this.state.selectedPic;
+        arr[this.selectedContentIndex] = contentInfo;
+        this.setState({
+          contentInfoArr : arr
+        })
+      }
       this.setState({open : false});
       this.isColorChanged = false;
       this.isTextChanged = false;
-      
+      this.isPicChanged = false;
     }
   
     //将每个chip设置为对应的颜色，以提示用户设置好的内容顺序
@@ -389,8 +417,13 @@ class TrailSetter extends React.Component{
                     style={this.tabStyle} 
                     color={this.state.selectedColor}
                     text={this.state.selectedText}
+                    pic={this.state.selectedPic}
+                    width={this.state.trailerWidth}
+                    height={this.state.trailerHeight}
+                    onPicChanged={this.handlePicChange}
                     onColorChanged={this.handleColorChange}
                     onTextChanged={this.handleTextChange}
+                    handleImageUploaded={this.handlePicChange}
                     >
                 </TrailingSettingTabbar>}
           </DialogContent>

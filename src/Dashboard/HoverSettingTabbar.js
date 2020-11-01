@@ -3,6 +3,10 @@ import { Tab, Tabs, TabList, TabPanel } from 'react-tabs';
 import 'react-tabs/style/react-tabs.css';
 import { SketchPicker } from 'react-color'
 import { Editor } from '@tinymce/tinymce-react';
+import InputLabel from '@material-ui/core/InputLabel';
+import MenuItem from '@material-ui/core/MenuItem';
+import Select from '@material-ui/core/Select';
+import ImageLoader from '../ImageLoader/ImageLoader'
 
 //弹出设置窗口中的跟随动效设置tabbar
 
@@ -10,8 +14,37 @@ import { Editor } from '@tinymce/tinymce-react';
 const apiKey = 'qagffr3pkuv17a8on1afax661irst1hbr4e6tbv888sz91jc';
 
 class HoverSettingTabbar extends React.Component{
+  constructor(props){
+    super(props);
+    this.state = {
+      contentType : "text",
+    }
+    this.handleContentTypeChange = this.handleContentTypeChange.bind(this);
+  }
+
+  handleContentTypeChange(event){
+    this.setState({
+      contentType : event.target.value
+    })
+  }
     render(){
         return (
+          <div>
+            <InputLabel>Content Type</InputLabel>
+            <Select
+              style={{width : "100%"}}
+              value={this.state.contentType}
+              onChange={this.handleContentTypeChange}
+            >
+            <MenuItem value={"text"}>Edit Text</MenuItem>
+            <MenuItem value={"image"}>Upload Image</MenuItem>
+            </Select>
+            {this.state.contentType === "image"?
+            <ImageLoader
+              handleImageUploaded={this.props.handleImageUploaded}
+              setterPic={this.props.pic}
+              withClip={false}
+            ></ImageLoader>:
             <Tabs defaultIndex={0}>
             <TabList>
               <Tab>Color</Tab>
@@ -67,7 +100,8 @@ class HoverSettingTabbar extends React.Component{
               onEditorChange={this.props.onTextChanged}
             />
             </TabPanel>
-          </Tabs>
+          </Tabs>}
+          </div>
         );
     }
 }

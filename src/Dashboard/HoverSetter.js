@@ -15,6 +15,9 @@ import DialogTitle from '@material-ui/core/DialogTitle';
 import Slide from '@material-ui/core/Slide';
 import Button from '@material-ui/core/Button';
 import Tooltip from '@material-ui/core/Tooltip';
+import FormControlLabel from '@material-ui/core/FormControlLabel';
+import Switch from '@material-ui/core/Switch';
+import Divider from '@material-ui/core/Divider';
 
 import TextField from '@material-ui/core/TextField';
 import HoverSettingTabbar from './HoverSettingTabbar'
@@ -41,12 +44,17 @@ class HoverSetter extends React.Component{
             selectedColor : "transparent",
             //对选中的一项内容设置的文字：初始值为空字符串 - 必须设置为state不然修改后不会引起render，colorPicker的值不会改变
             selectedText : "",
+            //对选中的一项内容设置的图片：初始值为空字符串
+            selectPic : '',
 
 
             //悬停出现内容/颜色数组：初始值为空
             contentInfoArr : [],
             //悬停缩放比例：大于1是放大，小于1是缩小
             hoverScale : 1,
+
+            //悬停缩放是否只缩放图片不缩放框
+            picScaleOnly : this.props.hoverScalePicOnly,
         }
 
         //记录当前props传入的选中setter的索引值，默认为null（选中画布）：用于判断是否切换setter
@@ -57,6 +65,8 @@ class HoverSetter extends React.Component{
 
         //判断弹出设置窗口后是否修改了选中的内容项的文字，只有修改了点击save才需要将设置的内容存入内容数组
         this.isTextChanged = false;
+        //判断弹出设置窗口后是否修改了选中内容项的图片，只有修改了点击save才需要将设置的内容存入内容数组
+        this.isPicChanged = false;
         //提示or设置窗口的文字内容
         this.dialogContent = "Set the color and content of this trail content.";
         //设置窗口的文字内容
@@ -71,6 +81,8 @@ class HoverSetter extends React.Component{
         this.handleScaleChange = this.handleScaleChange.bind(this);
         this.handleHoverSetterSizeChange = this.handleHoverSetterSizeChange.bind(this);
         this.handleHoverSetterPositionChange = this.handleHoverSetterPositionChange.bind(this);
+        this.handleSetPicScaleOnly = this.handleSetPicScaleOnly.bind(this);
+        this.handlePicChange = this.handlePicChange.bind(this);
 
         //选中要修改的常变动效内容项索引
         this.selectedContentIndex = null;
@@ -102,6 +114,7 @@ class HoverSetter extends React.Component{
         this.setState({
             selectedColor : (contentInfo !== null && typeof(contentInfo) !== 'undefined')?contentInfo.activeKeyColor:"transparent",
             selectedText : (contentInfo !== null && typeof(contentInfo) !== 'undefined')?contentInfo.activeKeyContent:"",
+            selectPic : (contentInfo !== null && typeof(contentInfo) !== 'undefined')?contentInfo.activeKeyPic:"",
         })
     }
 
@@ -112,6 +125,7 @@ class HoverSetter extends React.Component{
         this.setState({
           contentInfoArr : this.props.hoverContentArr,
           hoverScale : this.props.hoverScale,
+          picScaleOnly : this.props.hoverScalePicOnly,
         })
         this.curActiveIndex = this.props.index;
       }
@@ -142,6 +156,7 @@ class HoverSetter extends React.Component{
             contentInfo.name = 'Content' + this.state.contentInfoArr.length;
             contentInfo.activeKeyColor = "transparent";
             contentInfo.activeKeyContent = "";
+            contentInfo.activeKeyPic = "";
             //将选中内容项的索引切换为新建内容项的索引
             this.selectedContentIndex = this.state.contentInfoArr.length;
             //将新添加的内容项加入悬停出现内容数组
@@ -181,6 +196,7 @@ class HoverSetter extends React.Component{
       this.setState({open : false});
       this.isColorChanged = false;
       this.isTextChanged = false;
+      this.isPicChanged = false;
     };
 
     //点击设置悬停动效按钮打开或收起设置面板时调用
@@ -194,7 +210,7 @@ class HoverSetter extends React.Component{
     handleApplyClick = () => {
         if(this.props.handleSettingFinished){
             //调用TextAnimPanel传入的函数，设置TextAnimPanel的changingContentArr和changingInterval
-            this.props.handleSettingFinished(this.state.contentInfoArr, this.state.hoverScale);
+            this.props.handleSettingFinished(this.state.contentInfoArr, this.state.hoverScale, this.state.picScaleOnly);
             //广播常变动效设置模式关闭
             EventEmitter.emit("isHoverSettingOn", false);
         }
@@ -219,6 +235,14 @@ class HoverSetter extends React.Component{
       this.isTextChanged = true;
     }
 
+    //在imageLoader中设置指定序号内容的图片
+    handlePicChange(pic){
+      //ImageLoader编辑器中的pic被修改了
+      this.setState({
+          selectPic : pic
+      })
+      this.isPicChanged = true;
+    }
     handleScaleChange(event){
         //alert("handleScaleChange!!! scale = " + event.target.value);
         this.setState({hoverScale : event.target.value});
@@ -246,10 +270,20 @@ class HoverSetter extends React.Component{
           contentInfoArr : arr
         })
       }
+      //判断是否修改了图片，如果没修改，则不保存
+      if(this.isPicChanged){
+        let arr = [...this.state.contentInfoArr];
+        let contentInfo = arr[this.selectedContentIndex];
+        contentInfo.activeKeyPic = this.state.selectPic;
+        arr[this.selectedContentIndex] = contentInfo;
+        this.setState({
+          contentInfoArr : arr
+        })
+      }
       this.setState({open : false});
       this.isColorChanged = false;
       this.isTextChanged = false;
-      
+      this.isPicChanged = false;
     }
   
     //将每个chip设置为对应的颜色，以提示用户设置好的内容顺序
@@ -276,6 +310,13 @@ class HoverSetter extends React.Component{
          contentInfo.top = d.y;
          contentInfo.left += d.x;
          this.setState({contentInfoArr : arr});
+    }
+
+    //悬停缩放是否只缩放图片不缩放框开关
+    handleSetPicScaleOnly(){
+      this.setState(state => ({
+        picScaleOnly : !state.picScaleOnly
+      }))
     }
 
 
@@ -340,6 +381,22 @@ class HoverSetter extends React.Component{
           </AccordionSummary>
           <AccordionDetails style={this.detailStyle}>
               <div>
+                {this.props.contentType === 'image'? 
+                  <div>
+                    <FormControlLabel
+                      control={
+                        <Switch
+                          checked={this.state.picScaleOnly}
+                          onChange={this.handleSetPicScaleOnly}
+                          name="picScaleOnly"
+                          color="primary"
+                        />
+                      }
+                      label="仅缩放图片不缩放框"
+                    />
+                    <Divider />
+                  </div>: null}
+              
               <TextField
                 id="standard-number"
                 label="Number"
@@ -403,8 +460,10 @@ class HoverSetter extends React.Component{
                     style={this.tabStyle} 
                     color={this.state.selectedColor}
                     text={this.state.selectedText}
+                    pic={this.state.selectedPic}
                     onColorChanged={this.handleColorChange}
                     onTextChanged={this.handleTextChange}
+                    handleImageUploaded={this.handlePicChange}
                     >
                 </HoverSettingTabbar>}
           </DialogContent>

@@ -140,6 +140,9 @@ export default function Dashboard() {
   const [open, setOpen] = React.useState(true);
   const [pageLength, setPageLength] = React.useState(712);
   const [canvasScrollTop, setCanvasScrollTop] = React.useState(0);
+  //上传的图片字符串
+  const [picData, setPicData] = React.useState('');
+
   const handleDrawerOpen = () => {
     setOpen(true);
   };
@@ -168,6 +171,15 @@ export default function Dashboard() {
     if(pageLength > canvasHeightUnit){
       setPageLength(pageLength - canvasHeightUnit);
     }
+  }
+
+  const handleImageUploaded = (img) => {
+    setPicData(img);
+    //console.log("dashboard - img = " + img);
+  }
+
+  const handleImageClear = () => {
+    setPicData('');
   }
 
   return (
@@ -214,7 +226,9 @@ export default function Dashboard() {
         <Button variant="outlined" color="inherit" onClick={handleShortenPage}>
             Shorten page
         </Button>
-        <ListMenu></ListMenu>
+        <ListMenu
+          handleImageUploaded={handleImageUploaded}
+          handleImageClear={handleImageClear}></ListMenu>
       </Drawer>
       <main className={classes.content}>
         <div className={classes.appBarSpacer} />
@@ -223,7 +237,8 @@ export default function Dashboard() {
               <Paper className={fixedHeightPaper} onScroll={handleCanvasScroll}>
                 <WebCanvas 
                   pageLength={pageLength}
-                  scrollTop={canvasScrollTop}></WebCanvas>
+                  scrollTop={canvasScrollTop}
+                  imgUploaded={picData}></WebCanvas>
               </Paper>
             </Grid>
           <Box pt={4}>

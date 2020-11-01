@@ -18,6 +18,10 @@ import Tooltip from '@material-ui/core/Tooltip';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import Switch from '@material-ui/core/Switch';
 import Divider from '@material-ui/core/Divider';
+import ImageLoader from '../ImageLoader/ImageLoader'
+import InputLabel from '@material-ui/core/InputLabel';
+import MenuItem from '@material-ui/core/MenuItem';
+import Select from '@material-ui/core/Select';
 
 import InputSlider from './TimerSetter'
 import Tabbar from './Tabbar'
@@ -44,7 +48,8 @@ class ControlledAccordions extends React.Component{
             contentInfoArr : this.props.activeKeyInfo === null? [] : [{
                 name : 'Text0',
                 activeKeyColor : this.props.activeKeyInfo.color,
-                activeKeyContent : this.props.activeKeyInfo.content
+                activeKeyContent : this.props.activeKeyInfo.content,
+                activeKeyPic : this.props.activeKeyInfo.pic,
             },
             //改变第一个元素为当前颜色和内容，并加上剩下的所有元素
             ...this.props.activeKeyInfo.animeInfo.changingContentArr.slice(1)
@@ -55,9 +60,13 @@ class ControlledAccordions extends React.Component{
             curActiveKey : this.props.activeKeyInfo === null? null : this.props.activeKeyInfo.index,
             //是否启动走马灯效果
             setMarquee : false,
+
+            //常变内容选择对话框的内容类型选择
+            contentType : "text",
         }
         //当前被选中的setter的信息对象
         this.activeKeyInfo = this.props.activeKeyInfo;
+
         //对选中的一项内容设置的颜色：初始值为当前选中setter的颜色，如果当前没有选中setter，则初始值为透明
         this.selectedColor = this.props.activeKeyInfo === null? "transparent" : this.props.activeKeyInfo.color;
         //判断弹出设置窗口后是否修改了选中的内容项的颜色，只有修改了点击save才需要将设置的内容存入内容数组
@@ -66,6 +75,10 @@ class ControlledAccordions extends React.Component{
         this.selectedText = this.props.activeKeyInfo === null? "" : this.activeKeyInfo.content;
         //判断弹出设置窗口后是否修改了选中的内容项的文字，只有修改了点击save才需要将设置的内容存入内容数组
         this.isTextChanged = false;
+        //对选中的一项内容设置的图片：初始值为当前选中setter的图片，如果当前没有选中setter，则初始值为空字符串
+        this.selectedPic = this.props.activeKeyInfo === null? "" : this.activeKeyInfo.pic;
+        //判断弹出设置窗口后是否修改了选中的内容项的图片，只有修改了点击save才需要将设置的内容存入内容数组
+        this.isPicChanged = false;
         //用于标志tabbar是否是设置窗口的tabbar（而不是主设置栏的tabbar）：只要resetTab的值改变就说明是设置窗口而不是主设置栏的tabbar
         this.resetTab = 0;
         //提示or设置窗口的文字内容
@@ -81,9 +94,11 @@ class ControlledAccordions extends React.Component{
         this.handleIntervalChange = this.handleIntervalChange.bind(this);
         this.handleColorChange = this.handleColorChange.bind(this);
         this.handleTextChange = this.handleTextChange.bind(this);
+        this.handlePicChange = this.handlePicChange.bind(this);
         this.handleSaveClose = this.handleSaveClose.bind(this);
         this.getChipStyleFromIndex = this.getChipStyleFromIndex.bind(this);
         this.handleSetMarqueeChange = this.handleSetMarqueeChange.bind(this);
+        this.handleContentTypeChange = this.handleContentTypeChange.bind(this);
 
         //选中要修改的常变动效内容项索引
         this.selectedContentIndex = null;
@@ -104,7 +119,8 @@ class ControlledAccordions extends React.Component{
                 this.setState({
                     contentInfoArr : [],
                     interval : null,
-                    curActiveKey : null
+                    curActiveKey : null,
+                    setMarquee : false,
                 }) 
             }
         }
@@ -116,12 +132,14 @@ class ControlledAccordions extends React.Component{
                     contentInfoArr : [{
                         name : 'Text0',
                         activeKeyColor : this.props.activeKeyInfo.color,
-                        activeKeyContent : this.props.activeKeyInfo.content
+                        activeKeyContent : this.props.activeKeyInfo.content,
+                        activeKeyPic : this.props.activeKeyInfo.pic,
                     },
                     ...this.props.activeKeyInfo.animeInfo.changingContentArr.slice(1)
                 ],
                     interval : this.props.activeKeyInfo.animeInfo.changingInterval,
-                    curActiveKey : this.props.activeKeyInfo.index
+                    curActiveKey : this.props.activeKeyInfo.index,
+                    setMarquee : this.props.activeKeyInfo.animeInfo.setMarquee,
                 }) 
             }
         }
@@ -176,6 +194,7 @@ class ControlledAccordions extends React.Component{
             contentInfo.name = 'Content' + this.state.contentInfoArr.length;
             contentInfo.activeKeyColor = this.state.contentInfoArr[0].activeKeyColor;
             contentInfo.activeKeyContent = this.state.contentInfoArr[0].activeKeyContent;
+            contentInfo.activeKeyPic = this.state.contentInfoArr[0].activeKeyPic;
             //将新添加的内容项加入常变内容数组
             arr.push(contentInfo);
             this.setState({contentInfoArr : arr});
@@ -245,6 +264,13 @@ class ControlledAccordions extends React.Component{
       this.isTextChanged = true;
     }
 
+    //在image loader中设置指定序号内容的文字
+    handlePicChange(img){
+      //富文本编辑器中的text被修改了
+      this.selectedPic = img;
+      this.isPicChanged = true;
+    }
+
     //点击保存设置好的颜色并关闭弹窗
     handleSaveClose(){
       //判断是否修改了颜色，如果没修改，则不保存
@@ -267,10 +293,20 @@ class ControlledAccordions extends React.Component{
           contentInfoArr : arr
         })
       }
+      //判断是否修改了图片，如果没修改，则不保存
+      if(this.isPicChanged){
+        let arr = [...this.state.contentInfoArr];
+        let contentInfo = arr[this.selectedContentIndex];
+        contentInfo.activeKeyPic = this.selectedPic;
+        arr[this.selectedContentIndex] = contentInfo;
+        this.setState({
+          contentInfoArr : arr
+        })
+      }
       this.setState({open : false});
       this.isColorChanged = false;
       this.isTextChanged = false;
-      
+      this.isPicChanged = false;
     }
   
     //将每个chip设置为对应的颜色，以提示用户设置好的内容顺序
@@ -288,6 +324,13 @@ class ControlledAccordions extends React.Component{
         setMarquee : !state.setMarquee
       }))
 
+    }
+
+    //内容设置对话框改变内容类型
+    handleContentTypeChange(event){
+      this.setState({
+        contentType : event.target.value,
+      })
     }
 
   //下拉面板样式
@@ -350,6 +393,43 @@ class ControlledAccordions extends React.Component{
       console.log("this.selectedContentIndex is false");
     }
     */
+    const contentTypeSelector = 
+      <div>
+        <InputLabel>Content Type</InputLabel>
+        <Select
+          style={{width : "100%"}}
+          value={this.state.contentType}
+          onChange={this.handleContentTypeChange}
+        >
+          <MenuItem value={"text"}>Edit Text</MenuItem>
+          <MenuItem value={"image"}>Upload Image</MenuItem>
+        </Select>
+      </div>
+    const textEditor = 
+      <Tabbar 
+        style={this.tabStyle} 
+        anime={false}
+        color={this.state.contentInfoArr.length!==0?this.state.contentInfoArr[this.selectedContentIndex && this.selectedContentIndex<this.state.contentInfoArr.length? this.selectedContentIndex : 0].activeKeyColor:null}
+        text={this.state.contentInfoArr.length!==0?this.state.contentInfoArr[this.selectedContentIndex && this.selectedContentIndex<this.state.contentInfoArr.length? this.selectedContentIndex : 0].activeKeyContent:null}
+        onColorChanged={this.handleColorChange}
+        onTextChanged={this.handleTextChange}
+        tabIndex={this.resetTab}
+        contentType="text">
+      </Tabbar>
+    const imgLoader = 
+      <ImageLoader
+        handleImageUploaded={this.handlePicChange}
+        setterWidth={this.activeKeyInfo.width}
+        setterHeight={this.activeKeyInfo.height}
+        setterPic={this.state.contentInfoArr.length!==0?this.state.contentInfoArr[this.selectedContentIndex && this.selectedContentIndex<this.state.contentInfoArr.length? this.selectedContentIndex : 0].activeKeyPic:''}
+        withClip={true}
+      ></ImageLoader>
+    const dialogContent = 
+      <div>
+        {contentTypeSelector}
+        {this.state.contentType === "text"? textEditor : imgLoader}
+      </div>;
+
     
       return (
         <div style={this.root}>
@@ -421,15 +501,7 @@ class ControlledAccordions extends React.Component{
               {this.dialogContent}
             </DialogContentText>
             {this.isWarningDialog? null :
-                <Tabbar 
-                    style={this.tabStyle} 
-                    anime={false}
-                    color={this.state.contentInfoArr.length!==0?this.state.contentInfoArr[this.selectedContentIndex && this.selectedContentIndex<this.state.contentInfoArr.length? this.selectedContentIndex : 0].activeKeyColor:null}
-                    text={this.state.contentInfoArr.length!==0?this.state.contentInfoArr[this.selectedContentIndex && this.selectedContentIndex<this.state.contentInfoArr.length? this.selectedContentIndex : 0].activeKeyContent:null}
-                    onColorChanged={this.handleColorChange}
-                    onTextChanged={this.handleTextChange}
-                    tabIndex={this.resetTab}>
-                </Tabbar>}
+                dialogContent}
           </DialogContent>
           <DialogActions>
             <Button onClick={this.handleClose} color="primary">

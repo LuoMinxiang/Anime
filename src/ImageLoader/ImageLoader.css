@@ -1,0 +1,34 @@
+
+  
+  /*
+  html{
+    font-size: 20px;
+  }
+  
+  html,
+  body,
+  #root{
+    height: 75%;
+    background: rgba(96, 126, 190, 0.267);
+  }
+  */
+
+  canvas{
+    display: block; 
+    width : 500px;
+    height : 500px;
+    background-color: rgb(199, 199, 233);
+  }
+  
+  .mainbox{
+    margin: 0 auto;
+    width : 500px;
+    height : 500px;
+
+    /*
+    max-width: 750px;
+    min-height: 100%;
+    */
+    background: rgb(199, 167, 167); 
+  }
+  

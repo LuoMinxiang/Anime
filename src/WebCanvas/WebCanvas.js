@@ -28,6 +28,9 @@ class WebCanvas extends React.Component{
           //按编号排列的setter内容集合
           setterContentArray : [],
 
+          //按编号排列的setter图片集合
+          setterPicArray : [],
+
           //按编号排列的setter动效信息集合
           setterAniInfoArray : [],
 
@@ -54,6 +57,8 @@ class WebCanvas extends React.Component{
           curScrollTop : 0,
           //当前画布的高度
           curCanvasHeight : 712,
+          //当前图片编码：用于判断传入的图片参数有无变化
+          curImgUploaded : '',
         };
 
         //设置动效模式
@@ -121,6 +126,10 @@ class WebCanvas extends React.Component{
             let colorArr = [...this.state.setterColorArray];
             colorArr.push("transparent");
             this.setState({setterColorArray : colorArr});
+            //增加新增setter的默认图片，初始为空字符串
+            let picArr = [...this.state.setterPicArray];
+            picArr.push("");
+            this.setState({setterPicArray : picArr});
             //初始化动效设置数据
             let animeInfoArray = [...this.state.setterAniInfoArray];
             animeInfoArray.push({
@@ -139,6 +148,8 @@ class WebCanvas extends React.Component{
               //跟随组件宽高
               trailerWidth : 0,
               trailerHeight : 0,
+              //悬停缩放是否只缩放图片，而固定框的大小
+              hoverScalePicOnly : false,
               //悬停缩放比例：大于1是放大，小于1是缩小
               hoverScale : 1,
               //悬停出现内容数组
@@ -204,6 +215,7 @@ class WebCanvas extends React.Component{
             animeInfoArray[this.state.activeKey].changingInterval = msg.changingInterval;
             animeInfoArray[this.state.activeKey].setMarquee = msg.setMarquee;
             animeInfoArray[this.state.activeKey].reveal = msg.reveal;
+            animeInfoArray[this.state.activeKey].hoverScalePicOnly = msg.hoverScalePicOnly;
             animeInfoArray[this.state.activeKey].hoverScale = msg.hoverScale;
             animeInfoArray[this.state.activeKey].startScrollTop = msg.startScrollTop;
             animeInfoArray[this.state.activeKey].endScrollTop = msg.endScrollTop;
@@ -227,6 +239,7 @@ class WebCanvas extends React.Component{
                 hoverContent.name = item.name;
                 hoverContent.activeKeyColor = item.activeKeyColor;
                 hoverContent.activeKeyContent = item.activeKeyContent;
+                hoverContent.activeKeyPic = item.activeKeyPic;
                 animeInfoArray[this.state.activeKey].hoverContentArr[index] = hoverContent;
               }else{
                 animeInfoArray[this.state.activeKey].hoverContentArr[index] = null;
@@ -240,6 +253,7 @@ class WebCanvas extends React.Component{
                 animeInfoArray[this.state.activeKey].changingContentArr[index].name = item.name;
                 animeInfoArray[this.state.activeKey].changingContentArr[index].activeKeyColor = item.activeKeyColor;
                 animeInfoArray[this.state.activeKey].changingContentArr[index].activeKeyContent = item.activeKeyContent;
+                animeInfoArray[this.state.activeKey].changingContentArr[index].activeKeyPic = item.activeKeyPic;
               }else{
                 animeInfoArray[this.state.activeKey].changingContentArr[index] = null;
               }
@@ -252,6 +266,7 @@ class WebCanvas extends React.Component{
                 animeInfoArray[this.state.activeKey].trailingContentArr[index].name = item.name;
                 animeInfoArray[this.state.activeKey].trailingContentArr[index].activeKeyColor = item.activeKeyColor;
                 animeInfoArray[this.state.activeKey].trailingContentArr[index].activeKeyContent = item.activeKeyContent;
+                animeInfoArray[this.state.activeKey].trailingContentArr[index].activeKeyPic = item.activeKeyPic;
               }else{
                 animeInfoArray[this.state.activeKey].trailingContentArr[index] = null;
               }
@@ -370,6 +385,19 @@ class WebCanvas extends React.Component{
       if(this.props.scrollTop !== this.state.curScrollTop){
         //画布下滚幅度改变
         this.setState({curScrollTop : this.props.scrollTop});
+      }
+      //判断上传的图片有无变化
+      if(this.props.imgUploaded !== this.state.curImgUploaded){
+        this.setState({
+          curImgUploaded : this.props.imgUploaded
+        });
+        if(this.state.activeKey !== null){
+          //当前有选中的setter：将新上传的图片放入当前选中的setter在图片数组中对应的位置
+          let picArr = [...this.state.setterPicArray];
+          picArr[this.state.activeKey] = this.props.imgUploaded;
+          this.setState({setterPicArray : picArr});
+        }
+        //console.log("webCanvas - new img uploaded! img = " + this.props.imgUploaded);
       }
     }
 
@@ -691,6 +719,7 @@ class WebCanvas extends React.Component{
                   activeKey={getActiveKey()} 
                   selectedSetterColor={getSelectedSetterColor(index)} 
                   data={this.state.setterContentArray[index]}
+                  pic={this.state.setterPicArray[index]}
                   animeInfo={this.state.setterAniInfoArray[index]}
                   handleMouseEnter={this.handleMouseEnter}
                   handleMouseLeave={this.handleMouseLeave}
@@ -708,6 +737,7 @@ class WebCanvas extends React.Component{
                   height={item.height}
                   x={item.left}
                   y={item.top}
+                  pic={item.activeKeyPic}
                   handleDragStop={this.handleHoverSetterPositionChange}
                   handleResizeStop={this.handleHoverSetterSizeChange}
                   text={item.activeKeyContent}>
@@ -724,6 +754,7 @@ class WebCanvas extends React.Component{
                   height={item.height}
                   x={item.left}
                   y={item.top}
+                  pic={item.activeKeyPic}
                   handleDragStop={this.handleHoverSetterPositionChange}
                   handleResizeStop={this.handleHoverSetterSizeChange}
                   text={item.activeKeyContent}>

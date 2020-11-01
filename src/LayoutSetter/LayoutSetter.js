@@ -7,8 +7,7 @@ import {Color2Str} from '../Utils/Color2Str'
 import {GetFirstNotNullKey} from '../Utils/GetFirstNotNullKey'
 import Trailer from '../Trailer/Trailer'
 import ReactDOM from 'react-dom'
-import { ThreeSixtySharp } from '@material-ui/icons';
-
+import Marquee from 'react-double-marquee';
 //布局组件
 
   const imgStyle = {
@@ -48,6 +47,12 @@ class LayoutSetter extends React.Component{
       marqueeLeft : 0,
       //当前是否设置走马灯效果
       curSetMarquee : false,
+
+      //图片宽高和位置
+      picWidth : 320,
+      picHeight : 200,
+      picTop : 0,
+      picLeft : 0,
     }
     //当前常变数组内容项索引
     this.contentIndex = 0;
@@ -84,6 +89,8 @@ class LayoutSetter extends React.Component{
     this.handleMouseEnter = this.handleMouseEnter.bind(this);
     this.handleMouseLeave = this.handleMouseLeave.bind(this);
     this.setMarqueeTimer = this.setMarqueeTimer.bind(this);
+    this.handleMouseEnterPic = this.handleMouseEnterPic.bind(this);
+    this.handleMouseLeavePic = this.handleMouseLeavePic.bind(this);
   }
 
   componentDidMount(){
@@ -101,6 +108,7 @@ class LayoutSetter extends React.Component{
       y: this.state.y,
       color: this.props.selectedSetterColor,  //颜色对象
       content: (typeof(this.props.data)=='undefined')?'':this.props.data,
+      pic : this.props.pic,
       //动态效果
       animeInfo: this.props.animeInfo
     };
@@ -197,6 +205,7 @@ componentDidUpdate(prevProps, prevState){
     height: this.state.height,
     x: this.state.x,
     y: this.state.y,
+    pic : this.props.pic,
     color: this.props.selectedSetterColor,  //颜色对象
     content: (typeof(this.props.data)=='undefined')?'':this.props.data,
     //动态效果
@@ -324,7 +333,7 @@ handleMouseOut(){
 //悬停回调函数
 handleMouseEnter(){
   //缩放
-  if(this.props.activeKey !== this.props.index){
+  if(this.props.animeInfo.hoverScalePicOnly !== true && this.props.activeKey !== this.props.index){
     //没选中：只有没选中时才有悬停缩放的效果，否则不好拖拽
     if(this.props.animeInfo.hoverScale !== 1){
     this.originalHeight = this.state.height;
@@ -343,11 +352,36 @@ handleMouseEnter(){
   this.props.handleMouseEnter(this.props.index);
 }
 
+//悬停图片缩放回调函数
+handleMouseEnterPic(){
+  //放大1.5倍
+  if(this.props.animeInfo.hoverScalePicOnly === true && this.props.activeKey !== this.props.index){
+    this.setState({
+      picWidth : this.state.width * 1.2,
+      picHeight : this.state.height * 1.2,
+      picTop : -(this.state.width * 1.2 - this.state.width) / 2,
+      picLeft : -(this.state.height * 1.2 - this.state.height) / 2,
+    })
+  }
+}
+
+//悬停取消图片缩放回调函数
+handleMouseLeavePic(){
+  if(this.props.animeInfo.hoverScalePicOnly === true && this.props.activeKey !== this.props.index){
+    this.setState({
+      picWidth : this.state.width,
+      picHeight : this.state.height,
+      picTop : 0,
+      picLeft : 0,
+    })
+  }
+}
+
 //取消悬停回调函数
 handleMouseLeave(){
   //恢复缩放
     //选没选中都要恢复：有可能缩放后才选中
-    if(this.props.animeInfo.hoverScale !== 1){
+    if(this.props.animeInfo.hoverScalePicOnly !== true && this.props.animeInfo.hoverScale !== 1){
     this.setState({
       height : this.originalHeight,
       width : this.originalWidth,
@@ -370,6 +404,7 @@ handleMouseLeave(){
           height: this.state.height,
           x: this.state.x,
           y: this.state.y,
+          pic : this.props.pic,
           color: this.props.selectedSetterColor,  //颜色对象
           content: (typeof(this.props.data)=='undefined')?'':this.props.data,
           animeInfo: this.props.animeInfo
@@ -383,19 +418,22 @@ handleMouseLeave(){
       //确定setter的颜色和文字
       let contentBg = Color2Str(this.props.selectedSetterColor);
       let contentText = this.props.data;
+      let contentPic = this.props.pic;
       let contentArr = [];
       let firstNotNullContentKey = 0;
       if(this.props.animeInfo.changingInterval){
          contentArr = this.props.animeInfo.changingContentArr;
          firstNotNullContentKey = GetFirstNotNullKey(this.props.animeInfo.changingContentArr);
          if(firstNotNullContentKey < contentArr.length){
-             //存在非空内容项：设置当前常变组件的颜色和文字
+             //存在非空内容项：设置当前常变组件的颜色和文字和图片
              if(contentArr.length > 0 && this.contentIndex < contentArr.length && contentArr[this.contentIndex] !== null && typeof(contentArr[this.contentIndex]) !== 'undefined'){
                  contentBg = Color2Str(contentArr[this.contentIndex].activeKeyColor);
                  contentText = contentArr[this.contentIndex].activeKeyContent;
+                 contentPic = contentArr[this.contentIndex].activeKeyPic;
              }else if(contentArr.length > 0 && this.contentIndex < contentArr.length && (contentArr[this.contentIndex] === null || typeof(contentArr[this.contentIndex]) === 'undefined')){
                  contentBg = Color2Str(contentArr[firstNotNullContentKey].activeKeyColor);
                  contentText = contentArr[firstNotNullContentKey].activeKeyContent;
+                 contentPic = contentArr[firstNotNullContentKey].activeKeyPic;
                  this.contentIndex = firstNotNullContentKey;
              }
          } 
@@ -411,8 +449,8 @@ handleMouseLeave(){
         //justifyContent: "center",
         border: "solid 1px #ddd",
         background: setterColor,
-        overflow : "hidden",
-        whiteSpace : "nowrap",
+        overflow : this.props.animeInfo.setMarquee? "hidden":"none",
+        whiteSpace : this.props.animeInfo.setMarquee?"nowrap":"normal",
       }
       //被选中的样式：红色虚线边框
       const activeLayoutSetterStyle = {
@@ -421,12 +459,13 @@ handleMouseLeave(){
         //justifyContent: "center",
         border: "dashed 2px red",
         background: setterColor,
-        overflow : "hidden",
-        whiteSpace : "nowrap",
+        overflow : this.props.animeInfo.setMarquee? "hidden":"none",
+        whiteSpace : this.props.animeInfo.setMarquee?"nowrap":"normal",
       }
       const divStyle = {
         height : "100%",
         width : "100%",
+        overflow : "none",
         //background : "green"
       }
 
@@ -443,6 +482,19 @@ handleMouseLeave(){
         trailingInterval : this.props.animeInfo.trailingInterval,
         trailerWidth : this.props.animeInfo.trailerWidth,
         trailerHeight : this.props.animeInfo.trailerHeight
+      }
+
+      const imgHoverScalePicOnlyStyle = {
+        width : this.state.picWidth,
+        //height : this.state.picHeight,
+        top : this.state.picTop,
+        left : this.state.picLeft,
+        position : "absolute"
+        
+      }
+
+      const imgNormalStyle = {
+        width : "100%",
       }
 
     //不带任何出现动效的布局组件
@@ -467,7 +519,7 @@ handleMouseLeave(){
         onResizeStart={() => {
           this.setState({
             width : this.originalWidth,
-            height : this.originalHeight
+            height : this.originalHeight,
           })
         }}
         onResizeStop={(e, direction, ref, delta, position) => {
@@ -483,16 +535,27 @@ handleMouseLeave(){
             width: setterWidth,
             height: setterHeight,
             ...position,
+
+            picWidth : setterWidth,
+            picHeight : setterHeight,
           });
           this.originalHeight = setterHeight;
           this.originalWidth = setterWidth;
       }}>
-        <Trailer
-              top={this.state.trailTop}
-              left={this.state.trailLeft}
-              trailInfo={trailInfo}
-              visibility={this.state.showTrailer}
-          ></Trailer>
+          {(contentPic !== '')? 
+        <img 
+          style={this.props.animeInfo.hoverScalePicOnly? imgHoverScalePicOnlyStyle : imgNormalStyle}
+          onMouseDown={event => {event.preventDefault()}} 
+          //onMouseMove={this.handleMouseMove}
+          //onMouseOut={this.handleMouseOut}
+          onMouseEnter={this.handleMouseEnterPic}
+          onMouseLeave={this.handleMouseLeavePic}
+          src={contentPic} 
+          alt=" pic not here " 
+          //width={this.state.picWidth}
+          /> : null}
+        
+        
         {/* div的内容必须是this.props.data，不然单一内容时手动修改setter内容无效 */}
         {this.props.animeInfo.setMarquee? 
         <div ref={element => this.marqueeRef = element} style={marqueeStyle} dangerouslySetInnerHTML={{__html:(this.props.data !== null && typeof(this.props.data) !== 'undefined') ? this.props.data.replace(/<p/g,'<span').replace(/p>/g,'span>') + this.marqueeFillingArr : this.props.data}}></div>
@@ -506,7 +569,12 @@ handleMouseLeave(){
           ref={element => this.divRef = element}>
           
           </div>}
-        
+          <Trailer
+              top={this.state.trailTop}
+              left={this.state.trailLeft}
+              trailInfo={trailInfo}
+              visibility={this.state.showTrailer}
+          ></Trailer> 
           
       </Rnd>
     
@@ -522,7 +590,9 @@ handleMouseLeave(){
         break;
     }
         return (
-          this.revealComponent
+          <div>
+            {this.revealComponent}
+            </div>
         );
     }
 }

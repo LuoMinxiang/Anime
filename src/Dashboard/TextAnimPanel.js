@@ -18,7 +18,8 @@ class TextAnimPanel extends React.Component{
     constructor(props){
         super(props);
         this.state = {
-            revealFade : false
+            revealFade : false,
+            curContentType : this.props.contentType,
         }
         this.animInfo = {
             //出现动效类型
@@ -36,6 +37,8 @@ class TextAnimPanel extends React.Component{
             //跟随组件宽高
             trailerWidth : 0,
             trailerHeight : 0,
+            //悬停缩放是否只缩放图片，而固定框的大小
+            hoverScalePicOnly : false,
             //悬停缩放比例：大于1是放大，小于1是缩小
             hoverScale : 1,
             //悬停出现内容数组
@@ -72,6 +75,14 @@ class TextAnimPanel extends React.Component{
         this.handleHoverSettingFinished = this.handleHoverSettingFinished.bind(this);
         this.handleScrollSettingFinished = this.handleScrollSettingFinished.bind(this);
         this.handleSetMarqueeFinished = this.handleSetMarqueeFinished.bind(this);
+    }
+
+    componentDidUpdate(prevProps, prevState){
+        if(this.props.contentType !== this.state.curContentType){
+            this.setState({
+                curContentType : this.props.contentType,
+            })
+        }
     }
     
     //常变动效设置完成时调用，将设置好的常变动效数据放入常变动效数据结构中
@@ -122,9 +133,10 @@ class TextAnimPanel extends React.Component{
         }
 
     //悬停动效设置完成时调用，将设置好的悬停动效数据放入悬停动效数据结构中
-    handleHoverSettingFinished(contentInfoArr, scale){
+    handleHoverSettingFinished(contentInfoArr, scale, scalePicOnly){
         this.animInfo.hoverContentArr = [...contentInfoArr];
         this.animInfo.hoverScale = scale;
+        this.animInfo.hoverScalePicOnly = scalePicOnly;
         //广播动效信息对象
         EventEmitter.emit("getAnim", this.animInfo);
     }
@@ -190,8 +202,12 @@ class TextAnimPanel extends React.Component{
                 if(activeKeyInfo){
                     this.animInfo.changingContentArr = [...activeKeyInfo.animeInfo.changingContentArr];
                     this.animInfo.changingInterval = activeKeyInfo.animeInfo.changingInterval;
+                    this.animInfo.setMarquee = activeKeyInfo.animeInfo.setMarquee;
                 }
-                return <ControlledAccordions handleSettingFinished={this.handleChangingSettingFinished} activeKeyInfo={activeKeyInfo} handleSetMarqueeFinished={this.handleSetMarqueeFinished}></ControlledAccordions>
+                return <ControlledAccordions 
+                            handleSettingFinished={this.handleChangingSettingFinished} 
+                            activeKeyInfo={activeKeyInfo} 
+                            handleSetMarqueeFinished={this.handleSetMarqueeFinished}></ControlledAccordions>
             }}
             </ActiveKeyInfoContext.Consumer>
             <ActiveKeyInfoContext.Consumer>
@@ -232,10 +248,13 @@ class TextAnimPanel extends React.Component{
                 if(activeKeyInfo){
                     this.animInfo.hoverContentArr = [...activeKeyInfo.animeInfo.hoverContentArr];
                     this.animInfo.hoverScale = activeKeyInfo.animeInfo.hoverScale;
+                    this.animInfo.hoverScalePicOnly = activeKeyInfo.animeInfo.hoverScalePicOnly;
                     return <HoverSetter
                                 handleSettingFinished={this.handleHoverSettingFinished}
                                 index={activeKeyInfo.index}
                                 hoverScale={this.animInfo.hoverScale}
+                                contentType={this.props.contentType}
+                                hoverScalePicOnly={this.animInfo.hoverScalePicOnly}
                                 hoverContentArr={this.animInfo.hoverContentArr}></HoverSetter>
                 }else{
                     //没有选中的setter
@@ -243,6 +262,8 @@ class TextAnimPanel extends React.Component{
                             handleSettingFinished={null}
                             index={null}
                             hoverScale={1}
+                            contentType={"text"}
+                            hoverScalePicOnly={false}
                             hoverContentArr={[]}></HoverSetter>
                 }
                 
