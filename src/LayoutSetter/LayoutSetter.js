@@ -109,6 +109,7 @@ class LayoutSetter extends React.Component{
       color: this.props.selectedSetterColor,  //颜色对象
       content: (typeof(this.props.data)=='undefined')?'':this.props.data,
       pic : this.props.pic,
+      vid : this.props.vid,
       //动态效果
       animeInfo: this.props.animeInfo
     };
@@ -206,6 +207,7 @@ componentDidUpdate(prevProps, prevState){
     x: this.state.x,
     y: this.state.y,
     pic : this.props.pic,
+    vid : this.props.vid,
     color: this.props.selectedSetterColor,  //颜色对象
     content: (typeof(this.props.data)=='undefined')?'':this.props.data,
     //动态效果
@@ -405,6 +407,7 @@ handleMouseLeave(){
           x: this.state.x,
           y: this.state.y,
           pic : this.props.pic,
+          vid : this.props.vid,
           color: this.props.selectedSetterColor,  //颜色对象
           content: (typeof(this.props.data)=='undefined')?'':this.props.data,
           animeInfo: this.props.animeInfo
@@ -419,6 +422,7 @@ handleMouseLeave(){
       let contentBg = Color2Str(this.props.selectedSetterColor);
       let contentText = this.props.data;
       let contentPic = this.props.pic;
+      const contentVid = this.props.vid;
       let contentArr = [];
       let firstNotNullContentKey = 0;
       if(this.props.animeInfo.changingInterval){
@@ -542,7 +546,29 @@ handleMouseLeave(){
           this.originalHeight = setterHeight;
           this.originalWidth = setterWidth;
       }}>
-          {(contentPic !== '')? 
+
+        {contentVid !== ''? 
+          <div style={{
+            width : "100%",
+            //height : 200
+          }}>
+          <video 
+            loop="loop"
+            muted="muted"
+            playsInline="playsinline"
+            autoPlay="autoplay"
+            style={{
+              position: "relative",
+              width: "100%",
+              height: "100%",
+              objectFit: "cover",
+              preload : "none",
+            }}>
+              <source src={this.props.vid} type="video/mp4"/>
+            </video>  
+            </div>: null}
+
+          {(contentVid === '' && contentPic !== '')? 
         <img 
           style={this.props.animeInfo.hoverScalePicOnly? imgHoverScalePicOnlyStyle : imgNormalStyle}
           onMouseDown={event => {event.preventDefault()}} 
@@ -557,7 +583,7 @@ handleMouseLeave(){
         
         
         {/* div的内容必须是this.props.data，不然单一内容时手动修改setter内容无效 */}
-        {this.props.animeInfo.setMarquee? 
+        {this.props.vid === '' && this.props.pic === ''? this.props.animeInfo.setMarquee? 
         <div ref={element => this.marqueeRef = element} style={marqueeStyle} dangerouslySetInnerHTML={{__html:(this.props.data !== null && typeof(this.props.data) !== 'undefined') ? this.props.data.replace(/<p/g,'<span').replace(/p>/g,'span>') + this.marqueeFillingArr : this.props.data}}></div>
         : <div  
           dangerouslySetInnerHTML={{__html:contentText}}
@@ -568,7 +594,7 @@ handleMouseLeave(){
           onMouseLeave={this.handleMouseLeave}
           ref={element => this.divRef = element}>
           
-          </div>}
+          </div> : null}
           <Trailer
               top={this.state.trailTop}
               left={this.state.trailLeft}

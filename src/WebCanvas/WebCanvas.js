@@ -31,6 +31,9 @@ class WebCanvas extends React.Component{
           //按编号排列的setter图片集合
           setterPicArray : [],
 
+          //按编号排列的setter视频集合
+          setterVidArray : [],
+
           //按编号排列的setter动效信息集合
           setterAniInfoArray : [],
 
@@ -57,8 +60,10 @@ class WebCanvas extends React.Component{
           curScrollTop : 0,
           //当前画布的高度
           curCanvasHeight : 712,
-          //当前图片编码：用于判断传入的图片参数有无变化
+          //当前图片url：用于判断传入的图片参数有无变化
           curImgUploaded : '',
+          //当前视频url：用于判断传入的视频url有无变化
+          curVidUploaded : '',
         };
 
         //设置动效模式
@@ -130,6 +135,10 @@ class WebCanvas extends React.Component{
             let picArr = [...this.state.setterPicArray];
             picArr.push("");
             this.setState({setterPicArray : picArr});
+            //增加新增setter的默认视频，初始为空字符串
+            let vidArr = [...this.state.setterVidArray];
+            vidArr.push("");
+            this.setState({setterVidArray : vidArr});
             //初始化动效设置数据
             let animeInfoArray = [...this.state.setterAniInfoArray];
             animeInfoArray.push({
@@ -398,6 +407,19 @@ class WebCanvas extends React.Component{
           this.setState({setterPicArray : picArr});
         }
         //console.log("webCanvas - new img uploaded! img = " + this.props.imgUploaded);
+      }
+
+      //判断上传的视频有无变化
+      if(this.props.vidUploaded !== this.state.curVidUploaded){
+        this.setState({
+          curVidUploaded : this.props.vidUploaded
+        });
+        if(this.state.activeKey !== null){
+          //当前有选中的setter：将新上传的视频放入当前选中的setter在视频数组中对应的位置
+          let vidArr = [...this.state.setterVidArray];
+          vidArr[this.state.activeKey] = this.props.vidUploaded;
+          this.setState({setterVidArray : vidArr});
+        }
       }
     }
 
@@ -720,6 +742,7 @@ class WebCanvas extends React.Component{
                   selectedSetterColor={getSelectedSetterColor(index)} 
                   data={this.state.setterContentArray[index]}
                   pic={this.state.setterPicArray[index]}
+                  vid={this.state.setterVidArray[index]}
                   animeInfo={this.state.setterAniInfoArray[index]}
                   handleMouseEnter={this.handleMouseEnter}
                   handleMouseLeave={this.handleMouseLeave}

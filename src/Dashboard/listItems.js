@@ -14,6 +14,8 @@ import Button from '@material-ui/core/Button';
 import EventEmitter from '../Utils/EventEmitter'
 import Tabbar from './Tabbar'
 import ImageLoadDialog from '../ImageLoader/ImageLoadDialog'
+import ImageLoadingBtn from '../ImageLoader/ImageLoadingBtn'
+import VideoLoaderBtn from '../VideoLoader/VideoLoaderBtn'
 
 //左侧设置面板
 
@@ -124,7 +126,7 @@ class ListMenu extends React.Component{
     {this.state.addBtnDrop?
     <div style={this.tabStyle}>
       <ActiveKeyInfoContext.Provider value={this.state.activeKeyInfo}>
-      {this.state.contentType !== "text"? 
+      {this.state.contentType === "image"? 
       <div 
         style={{
           //background : "red", 
@@ -139,7 +141,7 @@ class ListMenu extends React.Component{
           <Button variant="contained"
                   onClick={this.props.handleImageClear} 
                   color="secondary">Clear</Button> : null}
-      <Button 
+      {/*<Button 
         style={{
          // margin : 20
         }}
@@ -147,7 +149,39 @@ class ListMenu extends React.Component{
         color="primary"
         onClick={this.handleImageUploadBtnClick}>
         Upload
-      </Button>
+      </Button>*/}
+      <ImageLoadingBtn
+        handleImageUploaded={this.props.handleImageUploaded}
+      ></ImageLoadingBtn>
+      <br/>
+      </div> : null}
+      {this.state.contentType === "video"? 
+      <div 
+        style={{
+          //background : "red", 
+          padding : 0,
+          display : "flex",
+          justifyContent : "center",
+          textAlign : "center",
+          margin : "10px 0"
+        }}>
+        <br/>
+        {(this.state.activeKeyInfo && this.state.activeKeyInfo.vid !== '')? 
+          <Button variant="contained"
+                  onClick={this.props.handleVideoClear} 
+                  color="secondary">Clear</Button> : null}
+      {/*<Button 
+        style={{
+         // margin : 20
+        }}
+        variant="contained" 
+        color="primary"
+        onClick={this.handleImageUploadBtnClick}>
+        Upload
+      </Button>*/}
+      <VideoLoaderBtn
+        handleVideoUploaded={this.props.handleVideoUploaded}
+      ></VideoLoaderBtn>
       <br/>
       </div> : null}
         <Tabbar 

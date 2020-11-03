@@ -141,7 +141,11 @@ export default function Dashboard() {
   const [pageLength, setPageLength] = React.useState(712);
   const [canvasScrollTop, setCanvasScrollTop] = React.useState(0);
   //上传的图片字符串
-  const [picData, setPicData] = React.useState('');
+  //const [picData, setPicData] = React.useState('');
+  //上传的图片url
+  const [picUrl, setPicUrl] = React.useState('');
+  //上传的视频url
+  const [vidUrl, setVidUrl] = React.useState('');
 
   const handleDrawerOpen = () => {
     setOpen(true);
@@ -173,13 +177,22 @@ export default function Dashboard() {
     }
   }
 
-  const handleImageUploaded = (img) => {
-    setPicData(img);
+  const handleImageUploaded = (imgUrl) => {
+    setPicUrl(imgUrl);
     //console.log("dashboard - img = " + img);
   }
 
   const handleImageClear = () => {
-    setPicData('');
+    setPicUrl('');
+  }
+
+  const handleVideoUploaded = (vidUrl) => {
+    setVidUrl(vidUrl);
+    //console.log("dashboard - img = " + img);
+  }
+
+  const handleVideoClear = () => {
+    setVidUrl('');
   }
 
   return (
@@ -228,7 +241,9 @@ export default function Dashboard() {
         </Button>
         <ListMenu
           handleImageUploaded={handleImageUploaded}
-          handleImageClear={handleImageClear}></ListMenu>
+          handleImageClear={handleImageClear}
+          handleVideoUploaded={handleVideoUploaded}
+          handleVideoClear={handleVideoClear}></ListMenu>
       </Drawer>
       <main className={classes.content}>
         <div className={classes.appBarSpacer} />
@@ -238,7 +253,8 @@ export default function Dashboard() {
                 <WebCanvas 
                   pageLength={pageLength}
                   scrollTop={canvasScrollTop}
-                  imgUploaded={picData}></WebCanvas>
+                  imgUploaded={picUrl}
+                  vidUploaded={vidUrl}></WebCanvas>
               </Paper>
             </Grid>
           <Box pt={4}>

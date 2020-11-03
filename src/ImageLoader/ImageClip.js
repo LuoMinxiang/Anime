@@ -241,7 +241,7 @@ class ImageClip extends React.Component{
     fileChange = () =>{
         this.setState({ S : true });
         let picOM = this._file.files[0];
-        //console.log("imageClip - filrChange - picOM = " + picOM);
+        console.log("imageClip - filrChange - picOM = " + picOM);
         if(!picOM) return;
 
         // 从获取的图像中读取图片数据,即图片的BASE64码
@@ -250,7 +250,7 @@ class ImageClip extends React.Component{
         fileReade.onload = ev =>{
             // 创建一张图片
             this.img =  new Image();
-            //console.log("imageClip - onload - ev.target.result = " + ev.target.result);
+            console.log("imageClip - onload - ev.target.result = " + ev.target.result);
             this.img.src = ev.target.result;
             this.img.onload = () =>{
                 let n=1,
