@@ -453,7 +453,7 @@ handleMouseLeave(){
         //justifyContent: "center",
         border: "solid 1px #ddd",
         background: setterColor,
-        overflow : this.props.animeInfo.setMarquee? "hidden":"none",
+        overflow : (this.props.animeInfo.setMarquee || this.props.vid !== '')? "hidden":"none",
         whiteSpace : this.props.animeInfo.setMarquee?"nowrap":"normal",
       }
       //被选中的样式：红色虚线边框
@@ -463,7 +463,7 @@ handleMouseLeave(){
         //justifyContent: "center",
         border: "dashed 2px red",
         background: setterColor,
-        overflow : this.props.animeInfo.setMarquee? "hidden":"none",
+        overflow : (this.props.animeInfo.setMarquee || this.props.vid !== '')? "hidden":"none",
         whiteSpace : this.props.animeInfo.setMarquee?"nowrap":"normal",
       }
       const divStyle = {

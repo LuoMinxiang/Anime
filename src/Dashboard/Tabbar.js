@@ -101,10 +101,10 @@ class Tabbar extends React.Component{
       //在常变动效设置模式时，如果切换到其他tab，就关掉常变动效设置模式
       <Tabs selectedIndex={this.state.tabIndex} onSelect={index => this.setTabIndex(index)}>
     <TabList>
-    <Tab>Color</Tab>
+    {(this.props.contentType !== 'image')? <Tab>Color</Tab> : null}
       {this.props.contentType === "text"? <Tab>Content</Tab> : null}
       
-      {this.props.anime? <Tab>Animation</Tab> : null }
+      {(this.props.anime)? <Tab>Animation</Tab> : null }
     </TabList>
 
     <TabPanel>

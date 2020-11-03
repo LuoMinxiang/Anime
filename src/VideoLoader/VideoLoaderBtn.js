@@ -32,7 +32,7 @@ class VideoLoaderBtn extends React.Component{
             .then(res => res.json())
             .then(data => {
                 //获取存到后端的文件名
-                //console.log("data.fileName = " + data);
+                console.log("data.fileName = " + data.fileName);
                 const url = this.backEndHost + this.getvidUrlPre + data.fileName;
                 //console.log(url);
                 this.props.handleVideoUploaded(url);

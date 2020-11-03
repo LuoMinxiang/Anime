@@ -117,12 +117,10 @@ class ListMenu extends React.Component{
         </div>
         <hr/>
 
-    <ListItem button onClick={this.handleClick}>
-      <ListItemIcon>
-        <DashboardIcon />
-      </ListItemIcon>
-      <ListItemText primary="Add LayoutSetter" />
-    </ListItem>
+        <Button onClick={this.handleClick} style={{width: "80%", margin: "10%"}} variant="contained" color="primary">
+            添加布局组件
+        </Button>
+    
     {this.state.addBtnDrop?
     <div style={this.tabStyle}>
       <ActiveKeyInfoContext.Provider value={this.state.activeKeyInfo}>
@@ -184,31 +182,13 @@ class ListMenu extends React.Component{
       ></VideoLoaderBtn>
       <br/>
       </div> : null}
-        <Tabbar 
+        {this.state.contentType !== 'video'? <Tabbar 
         anime={true}
-        contentType={this.state.contentType}/>
+        contentType={this.state.contentType}/> : null}
       </ActiveKeyInfoContext.Provider>
     </div>
       :null}
-    <ListItem button>
-      <ListItemIcon>
-        <PeopleIcon />
-      </ListItemIcon>
-      <ListItemText primary="Customers" />
-    </ListItem>
-    <ListItem button>
-      <ListItemIcon>
-        <BarChartIcon />
-      </ListItemIcon>
-      <ListItemText primary="Reports" />
-    </ListItem>
-    <ListItem button>
-      <ListItemIcon>
-        <LayersIcon />
-      </ListItemIcon>
-      <ListItemText primary="Integrations" />
-    </ListItem>
-    <ActiveKeyInfoContext.Provider value={this.state.activeKeyInfo}>
+    {/*<ActiveKeyInfoContext.Provider value={this.state.activeKeyInfo}>
  <ImageLoadDialog
       open={this.state.imgOpen}
       handleClose={this.handleImageLoadDialogCancelClose}
@@ -216,7 +196,7 @@ class ListMenu extends React.Component{
       handleAgreeClose={this.handleImageLoadDialogLoadClose}
       handleImageUploaded={this.handleImagePreview}>
     </ImageLoadDialog>
-    </ActiveKeyInfoContext.Provider>
+    </ActiveKeyInfoContext.Provider>*/}
     
   </div>
     );
