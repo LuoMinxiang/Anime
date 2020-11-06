@@ -1,0 +1,6 @@
+.scaleComponent{
+    transition: width .35s linear !important;
+}
+.scaleComponent:hover{
+    width : '120%' !important;
+}

@@ -101,22 +101,24 @@ class Tabbar extends React.Component{
       //在常变动效设置模式时，如果切换到其他tab，就关掉常变动效设置模式
       <Tabs selectedIndex={this.state.tabIndex} onSelect={index => this.setTabIndex(index)}>
     <TabList>
-    {(this.props.contentType !== 'image')? <Tab>Color</Tab> : null}
-      {this.props.contentType === "text"? <Tab>Content</Tab> : null}
+    {(this.props.contentType !== 'image')? <Tab>颜色</Tab> : null}
+      {this.props.contentType === "text"? <Tab>文字</Tab> : null}
       
-      {(this.props.anime)? <Tab>Animation</Tab> : null }
+      {(this.props.anime)? <Tab>动效</Tab> : null }
     </TabList>
 
     <TabPanel>
     <ActiveKeyInfoContext.Consumer>
             {(activeKeyInfo) => {
               //alert("Tabbar got activeKeyInfo!!! " + (activeKeyInfo !== null? activeKeyInfo.totalN : null));
-              if(this.props.anime){
+              if(this.props.anime && this.props.contentType === 'text'){
                 //设置静态内容，颜色为当前选中setter的颜色
                 return <ColorPicker color={activeKeyInfo? activeKeyInfo.color : null}></ColorPicker>
-              }else{
+              }else if(this.props.contentType === 'text'){
                 //设置常变动效内容，颜色为传入参数的颜色
                 return <ColorPicker color={this.props.color} onColorChanged={this.props.onColorChanged}></ColorPicker>
+              }else{
+                return null;
               }
       
       }}
@@ -143,12 +145,13 @@ class Tabbar extends React.Component{
           <TextAnimPanel contentType={this.props.contentType}></TextAnimPanel>
     </TabPanel> :
     null}
+    {this.props.contentType === 'image'? <TextAnimPanel contentType={this.props.contentType}></TextAnimPanel> : null}
     <WarningDialog
       open={this.state.open}
       handleClose={this.handleDialogClose}
-      dialogContent="If you change tabs, all your unsafed editing on animation effect will be lost!"
-      agree="GO BACK AND SAVE"
-      disagree="I DON'T CARE. CHANGE ANYWAY"
+      dialogContent="切换会丢失所有未应用的设置！"
+      agree="去保存设置"
+      disagree="切换"
       handleDisagreeClose={this.handleDialogChooseChange}
       handleAgreeClose={this.handleDialogChooseSave}>
     </WarningDialog>

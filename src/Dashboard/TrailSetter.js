@@ -359,8 +359,8 @@ class TrailSetter extends React.Component{
             aria-controls="panel1bh-content"
             id="panel1bh-header"
           >
-            <Typography style={this.heading}>Trailing</Typography>
-            <Typography style={this.secondaryHeading}>Set trailing effect</Typography>
+            <Typography style={this.heading}>跟随</Typography>
+            <Typography style={this.secondaryHeading}>设置跟随动效</Typography>
           </AccordionSummary>
           <AccordionDetails style={this.detailStyle}>
               <TrailerSizeSetter 
@@ -394,7 +394,7 @@ class TrailSetter extends React.Component{
           <br/>
           <br/>
           <Button variant="contained" color="primary" onClick={this.handleApplyClick}>
-                Apply
+                应用
           </Button>
           </div>
           </AccordionDetails>
@@ -407,7 +407,7 @@ class TrailSetter extends React.Component{
           aria-labelledby="alert-dialog-slide-title"
           aria-describedby="alert-dialog-slide-description"
         >
-          <DialogTitle id="alert-dialog-slide-title">{"Set Change Content"}</DialogTitle>
+          <DialogTitle id="alert-dialog-slide-title">{"设置跟随内容"}</DialogTitle>
           <DialogContent>
             <DialogContentText id="alert-dialog-slide-description">
               {this.dialogContent}
@@ -429,10 +429,10 @@ class TrailSetter extends React.Component{
           </DialogContent>
           <DialogActions>
             <Button onClick={this.handleClose} color="primary">
-              Cancel
+              取消
             </Button>
             <Button onClick={this.handleSaveClose} color="primary">
-              Save
+              保存
             </Button>
           </DialogActions>
         </Dialog> 

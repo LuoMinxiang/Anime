@@ -13,7 +13,6 @@ class TrailerSizeSetter extends React.Component{
                 size={{ width: this.props.width, height: this.props.height }}
                 onResizeStop={this.props.onResizeStop}
                 >
-        Sample with default size
       </Resizable>
     }
 }

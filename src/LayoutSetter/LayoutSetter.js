@@ -7,7 +7,9 @@ import {Color2Str} from '../Utils/Color2Str'
 import {GetFirstNotNullKey} from '../Utils/GetFirstNotNullKey'
 import Trailer from '../Trailer/Trailer'
 import ReactDOM from 'react-dom'
-import Marquee from 'react-double-marquee';
+import { Motion, spring } from 'react-motion'
+import './LayoutSetter.css'
+import { TransferWithinAStationSharp } from '@material-ui/icons';
 //布局组件
 
   const imgStyle = {
@@ -27,7 +29,7 @@ class LayoutSetter extends React.Component{
       width : 320,
       height : 200,
       x : 0,
-      y : 0,
+      y : this.props.canvasScrollTop?this.props.canvasScrollTop:0,
       //当前参数的计时器时间间隔值（用于判断传入参数是否发生改变）
       curPropsInterval : 0,
       //修改当前内容，用来调用render：）
@@ -41,7 +43,7 @@ class LayoutSetter extends React.Component{
       trailLeft : 0,
 
       //当前画布的下滚幅度：判断画布下滚幅度有无改变
-      curScrollTop : 0,
+      curScrollTop : this.props.canvasScrollTop?this.props.canvasScrollTop:0,
       
       //文字走马灯marginLeft
       marqueeLeft : 0,
@@ -91,6 +93,7 @@ class LayoutSetter extends React.Component{
     this.setMarqueeTimer = this.setMarqueeTimer.bind(this);
     this.handleMouseEnterPic = this.handleMouseEnterPic.bind(this);
     this.handleMouseLeavePic = this.handleMouseLeavePic.bind(this);
+    this.sendSetterInfo = this.sendSetterInfo.bind(this);
   }
 
   componentDidMount(){
@@ -249,12 +252,14 @@ componentDidUpdate(prevProps, prevState){
     }
     this.setState({curScrollTop : this.props.canvasScrollTop});
   }
+  /*
   if(this.props.activeKey === this.props.index && (this.state.x !== this.originalScrollX || this.state.y !== this.originalScrollY)){
     this.setState({
       x : this.originalScrollX,
       y : this.originalScrollY,
     });
   }
+  */
 
   //判断设置走马灯效果是否改变
   if(this.props.animeInfo.setMarquee !== this.state.curSetMarquee){
@@ -334,7 +339,7 @@ handleMouseOut(){
 
 //悬停回调函数
 handleMouseEnter(){
-  //缩放
+  //缩放:记下原始宽高，改变state中的宽高
   if(this.props.animeInfo.hoverScalePicOnly !== true && this.props.activeKey !== this.props.index){
     //没选中：只有没选中时才有悬停缩放的效果，否则不好拖拽
     if(this.props.animeInfo.hoverScale !== 1){
@@ -356,14 +361,15 @@ handleMouseEnter(){
 
 //悬停图片缩放回调函数
 handleMouseEnterPic(){
-  //放大1.5倍
+  //放大1.1倍
   if(this.props.animeInfo.hoverScalePicOnly === true && this.props.activeKey !== this.props.index){
     this.setState({
-      picWidth : this.state.width * 1.2,
-      picHeight : this.state.height * 1.2,
-      picTop : -(this.state.width * 1.2 - this.state.width) / 2,
-      picLeft : -(this.state.height * 1.2 - this.state.height) / 2,
+      picWidth : this.state.width * 1.1,
+      picHeight : this.state.height * 1.1,
+      picTop : -(this.state.width * 1.1 - this.state.width) / 2,
+      picLeft : -(this.state.height * 1.1 - this.state.height) / 2,
     })
+    
   }
 }
 
@@ -376,6 +382,7 @@ handleMouseLeavePic(){
       picTop : 0,
       picLeft : 0,
     })
+    
   }
 }
 
@@ -395,8 +402,55 @@ handleMouseLeave(){
   this.props.handleMouseLeave();
 }
 
+//在宽高/位置改变时发送setter信息
+sendSetterInfo(){
+  if(this.props.activeKey === this.props.index){
+    if(this.state.width === this.originalWidth && this.state.height === this.originalHeight && this.state.x === this.originalX && this.state.y === this.originalY){
+      const setterInfo = {
+      //静态效果
+      totalN : data.length,
+      index: this.props.index,
+      width: this.state.width,
+      height: this.state.height,
+      x: this.state.x,
+      y: this.state.y,
+      pic : this.props.pic,
+      vid : this.props.vid,
+      color: this.props.selectedSetterColor,  //颜色对象
+      content: (typeof(this.props.data)=='undefined')?'':this.props.data,
+      animeInfo: this.props.animeInfo
+    };
+    EventEmitter.emit("activeKeyInfo", setterInfo);
+    }
+    
+  }else if(this.props.activeKey === null){
+    if(this.state.width === this.originalWidth && this.state.height === this.originalHeight && this.state.x === this.originalX && this.state.y === this.originalY){
+      EventEmitter.emit("activeKeyInfo", null);
+    }
+
+  }
+  
+}
+
     render(){
+      /*
       if(this.props.activeKey === this.props.index){
+        this.sendSetterInfo();
+      }else if(this.props.activeKey === null){
+        this.sendSetterInfo();
+      }
+      */
+      /*
+      if((this.props.activeKey === this.props.index 
+          && (this.state.width === this.originalWidth 
+          && this.state.height === this.originalHeight 
+          && this.state.x === this.originalX 
+          && this.state.y === this.originalY)
+          || (this.props.animeInfo.hasScrollEffect
+            && this.state.width === this.originalScrollWidth
+            && this.state.height === this.originalScrollHeight
+            && this.state.x === this.originalScrollX
+            && this.state.y === this.originalScrollY))){
         //广播当前组件的信息
         let setterInfo = {
           //静态效果
@@ -416,6 +470,8 @@ handleMouseLeave(){
       }else if(this.props.activeKey === null){
         EventEmitter.emit("activeKeyInfo", null);
       }
+      */
+     this.sendSetterInfo()
 
 
       //确定setter的颜色和文字
@@ -453,7 +509,7 @@ handleMouseLeave(){
         //justifyContent: "center",
         border: "solid 1px #ddd",
         background: setterColor,
-        overflow : (this.props.animeInfo.setMarquee || this.props.vid !== '')? "hidden":"none",
+        overflow : (this.props.animeInfo.setMarquee || this.props.vid !== '' || this.props.animeInfo.hoverScalePicOnly)? "hidden":"none",
         whiteSpace : this.props.animeInfo.setMarquee?"nowrap":"normal",
       }
       //被选中的样式：红色虚线边框
@@ -463,7 +519,7 @@ handleMouseLeave(){
         //justifyContent: "center",
         border: "dashed 2px red",
         background: setterColor,
-        overflow : (this.props.animeInfo.setMarquee || this.props.vid !== '')? "hidden":"none",
+        overflow : (this.props.animeInfo.setMarquee || this.props.vid !== '' || this.props.animeInfo.hoverScalePicOnly)? "hidden":"none",
         whiteSpace : this.props.animeInfo.setMarquee?"nowrap":"normal",
       }
       const divStyle = {
@@ -488,7 +544,10 @@ handleMouseLeave(){
         trailerHeight : this.props.animeInfo.trailerHeight
       }
 
+      /*
       const imgHoverScalePicOnlyStyle = {
+        //transition: "all 2s ease 0",
+        //transition: "width 2s ease 0",
         width : this.state.picWidth,
         //height : this.state.picHeight,
         top : this.state.picTop,
@@ -498,15 +557,29 @@ handleMouseLeave(){
       }
 
       const imgNormalStyle = {
-        width : "100%",
+        //transition: "width 2s ease 0",
+        width : "100%",  //"100%",
+        top : 0,
+        left : 0,
+        position: "absolute",
       }
+      */
 
     //不带任何出现动效的布局组件
     this.basicComponent = 
-      <Rnd 
+    <Motion style={{
+      width : spring(this.state.width), 
+      height : spring(this.state.height),
+      top : spring(this.state.y),
+      left : spring(this.state.x)
+    }}>
+      {motionStyle => 
+        <Rnd 
         style={this.props.activeKey==this.props.index?activeLayoutSetterStyle:layoutSetterStyle}
-        size={{ width: this.props.activeKey === this.props.index?this.originalWidth:this.state.width,  height: this.props.activeKey === this.props.index?this.originalHeight:this.state.height }}
-        position={{ x: this.props.activeKey === this.props.index?this.originalX:this.state.x, y: this.props.activeKey === this.props.index?this.originalY:this.state.y }}
+        //size={{ width: this.props.activeKey === this.props.index?this.originalWidth:this.state.width,  height: this.props.activeKey === this.props.index?this.originalHeight:this.state.height }}
+        size={{ width: this.props.activeKey === this.props.index?this.originalWidth:motionStyle.width,  height: this.props.activeKey === this.props.index?this.originalHeight:motionStyle.height }}
+        //position={{ x: this.props.activeKey === this.props.index?this.originalX:this.state.x, y: this.props.activeKey === this.props.index?this.originalY:this.state.y }}
+        position={{ x: this.props.activeKey === this.props.index?this.originalX:motionStyle.left, y: this.props.activeKey === this.props.index?this.originalY:motionStyle.top }}
         onDragStart={() => {
           this.setState({
             x : this.originalX,
@@ -514,7 +587,9 @@ handleMouseLeave(){
           })
         }}
         onDragStop={(e, d) => { 
-          this.setState({ x: d.x, y: d.y });
+          this.setState({ x: d.x, y: d.y }, ()=>{
+              this.sendSetterInfo();
+          });
           this.originalX = d.x;
           this.originalY = d.y; 
           this.originalScrollX = d.x;
@@ -542,6 +617,8 @@ handleMouseLeave(){
 
             picWidth : setterWidth,
             picHeight : setterHeight,
+          },()=>{
+            this.sendSetterInfo();
           });
           this.originalHeight = setterHeight;
           this.originalWidth = setterWidth;
@@ -569,8 +646,34 @@ handleMouseLeave(){
             </div>: null}
 
           {(contentVid === '' && contentPic !== '')? 
-        <img 
-          style={this.props.animeInfo.hoverScalePicOnly? imgHoverScalePicOnlyStyle : imgNormalStyle}
+        <Motion 
+         style={{
+          width : spring(this.state.picWidth),  //"100%",
+          height : spring(this.state.picHeight),
+          top : spring(this.state.picTop),
+          left : spring(this.state.picLeft),
+          //position : "absolute"
+        }}>
+          {interpolatingStyle =>
+          <div 
+          /*
+          style={{
+            width : interpolatingStyle.width,
+            height : interpolatingStyle.height,
+            //transform: `translate3d(${interpolatingStyle.left}px, ${interpolatingStyle.top}px, 0)`,
+            top : interpolatingStyle.top,
+            left : interpolatingStyle.left,
+            position: "absolute",
+          }}*/>
+          <img 
+          style={{
+            width : this.props.animeInfo.hoverScalePicOnly? interpolatingStyle.width: "100%",
+            top : this.props.animeInfo.hoverScalePicOnly? interpolatingStyle.top: 0,
+            left : this.props.animeInfo.hoverScalePicOnly? interpolatingStyle.left: 0,
+            position: "absolute",
+          }}
+          //style={this.props.animeInfo.hoverScalePicOnly? imgHoverScalePicOnlyStyle : imgNormalStyle}
+          //className={this.props.animeInfo.hoverScalePicOnly?'scaleComponent':''}
           onMouseDown={event => {event.preventDefault()}} 
           //onMouseMove={this.handleMouseMove}
           //onMouseOut={this.handleMouseOut}
@@ -579,7 +682,8 @@ handleMouseLeave(){
           src={contentPic} 
           alt=" pic not here " 
           //width={this.state.picWidth}
-          /> : null}
+          /></div>}
+        </Motion> : null}
         
         
         {/* div的内容必须是this.props.data，不然单一内容时手动修改setter内容无效 */}
@@ -603,6 +707,9 @@ handleMouseLeave(){
           ></Trailer> 
           
       </Rnd>
+      }
+      
+      </Motion>
     
     //加上出现动效后的布局组件
     this.revealComponent = this.basicComponent;

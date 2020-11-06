@@ -44,6 +44,7 @@ class ListMenu extends React.Component{
   }
 
   componentDidMount(){
+    
     this.emitter1 = EventEmitter.addListener("activeKeyInfo",(msg) => {
       if(msg !== null){
         //有选中的setter
@@ -54,8 +55,11 @@ class ListMenu extends React.Component{
       this.setState({activeKeyInfo : null});
     }
     });
+    
       
   }
+
+  
 
   //添加setter按钮的回调函数：点击后通知WebCanvas，添加一个空白的setter
   handleClick(){
@@ -104,15 +108,15 @@ class ListMenu extends React.Component{
           padding : "5px",
           //background : "red"
         }}>
-        <InputLabel>Content Type</InputLabel>
+        <InputLabel>布局组件内容类型</InputLabel>
         <Select
           style={{width : "100%"}}
           value={this.state.contentType}
           onChange={this.handleContentTypeChange}
         >
-          <MenuItem value={"text"}>Edit Text</MenuItem>
-          <MenuItem value={"image"}>Upload Image</MenuItem>
-          <MenuItem value={"video"}>Upload Video</MenuItem>
+          <MenuItem value={"text"}>文字</MenuItem>
+          <MenuItem value={"image"}>图片</MenuItem>
+          <MenuItem value={"video"}>视频</MenuItem>
         </Select>
         </div>
         <hr/>
@@ -138,7 +142,7 @@ class ListMenu extends React.Component{
         {(this.state.activeKeyInfo && this.state.activeKeyInfo.pic !== '')? 
           <Button variant="contained"
                   onClick={this.props.handleImageClear} 
-                  color="secondary">Clear</Button> : null}
+                  color="secondary">清除内容</Button> : null}
       {/*<Button 
         style={{
          // margin : 20
@@ -167,7 +171,7 @@ class ListMenu extends React.Component{
         {(this.state.activeKeyInfo && this.state.activeKeyInfo.vid !== '')? 
           <Button variant="contained"
                   onClick={this.props.handleVideoClear} 
-                  color="secondary">Clear</Button> : null}
+                  color="secondary">清除内容</Button> : null}
       {/*<Button 
         style={{
          // margin : 20

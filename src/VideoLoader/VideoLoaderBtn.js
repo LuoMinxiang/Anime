@@ -58,7 +58,7 @@ class VideoLoaderBtn extends React.Component{
                 />
                 <label htmlFor="contained-button-file">
                     <Button variant="contained" color="primary" component="span">
-                    Upload Video
+                    上传视频
                     </Button>
                 </label>
             </div>

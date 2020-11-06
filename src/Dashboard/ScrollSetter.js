@@ -248,8 +248,8 @@ class ScrollSetter extends React.Component{
             aria-controls="panel1bh-content"
             id="panel1bh-header"
           >
-            <Typography style={this.heading}>Scroll</Typography>
-            <Typography style={this.secondaryHeading}>Set scroll effect</Typography>
+            <Typography style={this.heading}>下滚</Typography>
+            <Typography style={this.secondaryHeading}>设置下滚动效</Typography>
           </AccordionSummary>
           <AccordionDetails style={this.detailStyle}>
               <div>
@@ -282,7 +282,7 @@ class ScrollSetter extends React.Component{
             />
             &nbsp;&nbsp;&nbsp;&nbsp;
             <Button variant="outlined" color="primary" onClick={this.handleSetStartScrollTop}>
-                Set
+                确定
             </Button>
               <br/>
               <TextField
@@ -305,7 +305,7 @@ class ScrollSetter extends React.Component{
             />
             &nbsp;&nbsp;&nbsp;&nbsp;
             <Button variant="outlined" color="primary" onClick={this.handleSetEndScrollTop}>
-                Set
+                确定
             </Button>
               <br/>
               <TextField
@@ -455,7 +455,7 @@ class ScrollSetter extends React.Component{
               <br/>
               
           <Button variant="contained" color="primary" onClick={this.handleApplyClick}>
-                Apply
+                应用
           </Button>
           </div>
           </AccordionDetails>
@@ -463,7 +463,7 @@ class ScrollSetter extends React.Component{
         <WarningDialog
             open={this.state.open}
             handleClose={this.handleDialogOKClose}
-            dialogContent="EndScrollTop shouldn't be equal to or less than StartScrollTop!!!"
+            dialogContent="开始线不应该与终止线相同!!!"
             handleAgreeClose={this.handleDialogOKClose}
             agree="OK"
         ></WarningDialog>

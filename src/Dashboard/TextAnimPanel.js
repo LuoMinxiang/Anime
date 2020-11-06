@@ -170,6 +170,7 @@ class TextAnimPanel extends React.Component{
   };
 
     render(){
+        //alert("textAnimPanel");
         const formControl = {
             minWidth: 120,
           }
@@ -179,7 +180,7 @@ class TextAnimPanel extends React.Component{
             {(activeKeyInfo) => {
                 this.animInfo.reveal = activeKeyInfo?activeKeyInfo.animeInfo.reveal:"";
             return <FormControl variant="outlined" style={formControl}>
-                <InputLabel id="demo-simple-select-outlined-label">Reveal</InputLabel>
+                <InputLabel id="demo-simple-select-outlined-label">出现动效</InputLabel>
                 <Select
                     labelId="demo-simple-select-outlined-label"
                     id="demo-simple-select-outlined"
@@ -188,10 +189,10 @@ class TextAnimPanel extends React.Component{
                     label="Reveal"
                 >
                 <MenuItem value="">
-                    <em>None</em>
+                    <em>无</em>
                 </MenuItem>
-                <MenuItem value={"Fade"}>Fade</MenuItem>
-                <MenuItem value={"Zoom"}>Zoom</MenuItem>
+                <MenuItem value={"Fade"}>浮现</MenuItem>
+                <MenuItem value={"Zoom"}>急升</MenuItem>
                 </Select>
             </FormControl>
             }}

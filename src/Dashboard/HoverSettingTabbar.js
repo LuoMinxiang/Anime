@@ -30,14 +30,14 @@ class HoverSettingTabbar extends React.Component{
     render(){
         return (
           <div>
-            <InputLabel>Content Type</InputLabel>
+            <InputLabel>内容类型</InputLabel>
             <Select
               style={{width : "100%"}}
               value={this.state.contentType}
               onChange={this.handleContentTypeChange}
             >
-            <MenuItem value={"text"}>Edit Text</MenuItem>
-            <MenuItem value={"image"}>Upload Image</MenuItem>
+            <MenuItem value={"text"}>文字</MenuItem>
+            <MenuItem value={"image"}>图片</MenuItem>
             </Select>
             {this.state.contentType === "image"?
             <ImageLoader
@@ -47,8 +47,8 @@ class HoverSettingTabbar extends React.Component{
             ></ImageLoader>:
             <Tabs defaultIndex={0}>
             <TabList>
-              <Tab>Color</Tab>
-              <Tab>Content</Tab>
+              <Tab>颜色</Tab>
+              <Tab>内容</Tab>
             </TabList>
         
             <TabPanel>

@@ -87,6 +87,11 @@ class WebCanvas extends React.Component{
         //被拖拽/缩放的悬停出现组件的ref
         this.hoverLayoutSetterRef = null;
 
+        //当前setter信息
+        this.activeKeySetterInfo = null;
+        //是否传递setter信息
+        this.sendInfo = false;
+
         this.handleSetterClick = this.handleSetterClick.bind(this);
         this.handleCanvasClick = this.handleCanvasClick.bind(this);
         this.handleKeyDown = this.handleKeyDown.bind(this);
@@ -456,6 +461,8 @@ class WebCanvas extends React.Component{
               activeKey : null,
               scrollLayoutSetterVisibility : "hidden"
             });
+            this.activeKeySetterInfo = null;
+            //EventEmitter.emit("activeKeyInfo", this.activeKeySetterInfo);
         }
     }
 
@@ -651,6 +658,7 @@ class WebCanvas extends React.Component{
       }
     }
 
+
     render(){
    //根据setter的编号值取出指定setter的颜色
     const getSelectedSetterColor = (index) => {
@@ -809,16 +817,15 @@ class WebCanvas extends React.Component{
           <DialogTitle id="alert-dialog-slide-title">{"Set Change Content"}</DialogTitle>
           <DialogContent>
             <DialogContentText id="alert-dialog-slide-description">
-              The changes you made to the current selected setter has not been applied yet.
-              If you select another setter or cancel selecting, those changes won't be saved.
+              你还有未应用的动效设置，取消选中或切换会导致这些设置丢失！
             </DialogContentText>
           </DialogContent>
           <DialogActions>
             <Button onClick={(e) => this.handleSelectAnywayClose(e)} color="primary">
-              I don't care. Select/Cancel select anyway
+              取消/切换
             </Button>
             <Button onClick={(e) => this.handleSaveClose(e)} color="primary">
-              Go back and save
+              去应用设置
             </Button>
           </DialogActions>
         </Dialog> 

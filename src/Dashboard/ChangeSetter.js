@@ -45,7 +45,7 @@ class ControlledAccordions extends React.Component{
             //打开or关闭设置窗口
             open : false,
             //常变内容/颜色数组
-            contentInfoArr : this.props.activeKeyInfo === null? [] : [{
+            contentInfoArr : (this.props.activeKeyInfo === null || typeof(this.props.activeKeyInfo) === 'undefined')? [] : [{
                 name : 'Text0',
                 activeKeyColor : this.props.activeKeyInfo.color,
                 activeKeyContent : this.props.activeKeyInfo.content,
@@ -395,14 +395,14 @@ class ControlledAccordions extends React.Component{
     */
     const contentTypeSelector = 
       <div>
-        <InputLabel>Content Type</InputLabel>
+        <InputLabel>内容类型</InputLabel>
         <Select
           style={{width : "100%"}}
           value={this.state.contentType}
           onChange={this.handleContentTypeChange}
         >
-          <MenuItem value={"text"}>Edit Text</MenuItem>
-          <MenuItem value={"image"}>Upload Image</MenuItem>
+          <MenuItem value={"text"}>文字</MenuItem>
+          <MenuItem value={"image"}>图片</MenuItem>
         </Select>
       </div>
     const textEditor = 
@@ -419,8 +419,8 @@ class ControlledAccordions extends React.Component{
     const imgLoader = 
       <ImageLoader
         handleImageUploaded={this.handlePicChange}
-        setterWidth={this.activeKeyInfo.width}
-        setterHeight={this.activeKeyInfo.height}
+        setterWidth={this.activeKeyInfo?this.activeKeyInfo.width:0}
+        setterHeight={this.activeKeyInfo?this.activeKeyInfo.height:0}
         setterPic={this.state.contentInfoArr.length!==0?this.state.contentInfoArr[this.selectedContentIndex && this.selectedContentIndex<this.state.contentInfoArr.length? this.selectedContentIndex : 0].activeKeyPic:''}
         withClip={true}
       ></ImageLoader>
@@ -439,8 +439,8 @@ class ControlledAccordions extends React.Component{
             aria-controls="panel1bh-content"
             id="panel1bh-header"
           >
-            <Typography style={this.heading}>Changing</Typography>
-            <Typography style={this.secondaryHeading}>Set changing effect</Typography>
+            <Typography style={this.heading}>常变</Typography>
+            <Typography style={this.secondaryHeading}>设置常变动效</Typography>
           </AccordionSummary>
           <AccordionDetails style={this.detailStyle}>
               <div>
@@ -453,9 +453,11 @@ class ControlledAccordions extends React.Component{
                     color="primary"
                   />
                 }
-                label="setMarquee"
+                label="设置走马灯"
               />
+              <br/>
               <Divider />
+              <br/>
               {this.state.setMarquee? null : <div><InputSlider interval={this.state.interval} handleIntervalChange={this.handleIntervalChange}></InputSlider>
               <br/>
               <div style={this.gridContainer}>
@@ -480,7 +482,7 @@ class ControlledAccordions extends React.Component{
           <br/>
           <br/>
           <Button variant="contained" color="primary" onClick={this.handleApplyClick}>
-                Apply
+                应用
           </Button></div>}
               
           
@@ -495,7 +497,7 @@ class ControlledAccordions extends React.Component{
           aria-labelledby="alert-dialog-slide-title"
           aria-describedby="alert-dialog-slide-description"
         >
-          <DialogTitle id="alert-dialog-slide-title">{"Set Change Content"}</DialogTitle>
+          <DialogTitle id="alert-dialog-slide-title">{"设置常变内容"}</DialogTitle>
           <DialogContent>
             <DialogContentText id="alert-dialog-slide-description">
               {this.dialogContent}
@@ -505,10 +507,10 @@ class ControlledAccordions extends React.Component{
           </DialogContent>
           <DialogActions>
             <Button onClick={this.handleClose} color="primary">
-              Cancel
+              取消
             </Button>
             <Button onClick={this.handleSaveClose} color="primary">
-              Save
+              保存
             </Button>
           </DialogActions>
         </Dialog> 

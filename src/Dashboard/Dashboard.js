@@ -24,20 +24,6 @@ import { Link } from 'react-router-dom'
 
 //操作界面全部内容
 
-//网站脚注：画布下面的copyright部分
-function Copyright() {
-  return (
-    <Typography variant="body2" color="textSecondary" align="center">
-      {'Copyright © '}
-      <UILink color="inherit" href="https://material-ui.com/">
-        Your Website
-      </UILink>{' '}
-      {new Date().getFullYear()}
-      {'.'}
-    </Typography>
-  );
-}
-
 const drawerWidth = 240;
 const canvasHeightUnit = 712;
 
@@ -178,8 +164,9 @@ export default function Dashboard() {
   }
 
   const handleImageUploaded = (imgUrl) => {
+    console.log("dashboard - imgUrl = " + imgUrl);
     setPicUrl(imgUrl);
-    //console.log("dashboard - img = " + img);
+    
   }
 
   const handleImageClear = () => {
@@ -211,11 +198,11 @@ export default function Dashboard() {
             <MenuIcon />
           </IconButton>
           <Typography component="h1" variant="h6" color="inherit" noWrap className={classes.title}>
-            Dashboard
+            Animé
           </Typography>
 
           <Button variant="outlined" color="inherit" onClick={handlePreviewClick}>
-              <Link to="/preview" target="_blank" style={{ textDecoration:'none', color:'white'}}>Preview</Link>
+              <Link to="/preview" target="_blank" style={{ textDecoration:'none', color:'white'}}>预览</Link>
           </Button>
           
         </Toolbar>
@@ -234,10 +221,10 @@ export default function Dashboard() {
         </div>
         <Divider />
         <Button variant="outlined" color="inherit" onClick={handleLengthenPage}>
-          Lengthen page
+          加长画布
         </Button>
         <Button variant="outlined" color="inherit" onClick={handleShortenPage}>
-            Shorten page
+            缩短画布
         </Button>
         <ListMenu
           handleImageUploaded={handleImageUploaded}
@@ -254,12 +241,10 @@ export default function Dashboard() {
                   pageLength={pageLength}
                   scrollTop={canvasScrollTop}
                   imgUploaded={picUrl}
-                  vidUploaded={vidUrl}></WebCanvas>
+                  vidUploaded={vidUrl}
+                ></WebCanvas>
               </Paper>
             </Grid>
-          <Box pt={4}>
-            <Copyright />
-          </Box>
         </Container>
       </main>
     </div>

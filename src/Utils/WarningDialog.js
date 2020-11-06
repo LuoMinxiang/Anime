@@ -33,10 +33,10 @@ export default class WarningDialog extends React.Component{
           </DialogContent>
           <DialogActions>
             {this.props.handleDisagreeClose? <Button onClick={this.props.handleDisagreeClose} color="primary">
-              {this.props.disagree || "Disagree"}
+              {this.props.disagree || "不"}
             </Button> : null}
             {this.props.handleAgreeClose? <Button onClick={this.props.handleAgreeClose} color="primary">
-              {this.props.agree || "Agree"}
+              {this.props.agree || "好"}
             </Button> : null}            
           </DialogActions>
         </Dialog> 

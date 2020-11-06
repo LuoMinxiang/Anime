@@ -376,8 +376,8 @@ class HoverSetter extends React.Component{
             aria-controls="panel1bh-content"
             id="panel1bh-header"
           >
-            <Typography style={this.heading}>Hover</Typography>
-            <Typography style={this.secondaryHeading}>Set hover effect</Typography>
+            <Typography style={this.heading}>悬停</Typography>
+            <Typography style={this.secondaryHeading}>设置悬停动效</Typography>
           </AccordionSummary>
           <AccordionDetails style={this.detailStyle}>
               <div>
@@ -437,7 +437,7 @@ class HoverSetter extends React.Component{
           <br/>
           <br/>
           <Button variant="contained" color="primary" onClick={this.handleApplyClick}>
-                Apply
+                应用
           </Button>
           </div>
           </AccordionDetails>
@@ -469,10 +469,10 @@ class HoverSetter extends React.Component{
           </DialogContent>
           <DialogActions>
             <Button onClick={this.handleClose} color="primary">
-              Cancel
+              取消
             </Button>
             <Button onClick={this.handleSaveClose} color="primary">
-              Save
+              保存
             </Button>
           </DialogActions>
         </Dialog> 

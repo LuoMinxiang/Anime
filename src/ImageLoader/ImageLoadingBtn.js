@@ -56,7 +56,7 @@ class ImageLoadingBtn extends React.Component{
                 />
                 <label htmlFor="contained-button-file">
                     <Button variant="contained" color="primary" component="span">
-                    Upload Image
+                    上传图片
                     </Button>
                 </label>
             </div>

@@ -49,7 +49,7 @@ export default function InputSlider(props) {
   return (
     <div className={classes.root}>
       <Typography id="input-slider" gutterBottom>
-        Interval
+        时间间隔
       </Typography>
       <Grid container spacing={2} alignItems="center">
         <Grid item xs>

@@ -6,6 +6,7 @@ import {GetFirstNotNullKey} from '../Utils/GetFirstNotNullKey'
 import Trailer from '../Trailer/Trailer'
 import './Preview.css'
 import {ResizeFontSizeinHTMLStr} from '../Utils/ResizeFontSizeinHTMLStr'
+import {Motion, spring} from 'react-motion'
 
 //预览界面
 
@@ -401,8 +402,8 @@ class Preview extends React.Component{
             //只缩放图片不缩放框
             let arr = [...this.state.picSetterInfoArr];
             const setterPicInfo = arr[setter.index];
-            setterPicInfo.picWidth *= 1.2; //hoverScale;
-            setterPicInfo.picHeight *= 1.2; //hoverScale;
+            setterPicInfo.picWidth = setter.width * 1.2; //hoverScale;
+            setterPicInfo.picHeight = setter.height * 1.2; //hoverScale;
             setterPicInfo.picTop = -(setterPicInfo.picWidth - setter.width) / 2;
             setterPicInfo.picLeft = -(setterPicInfo.picHeight - setter.height) / 2;
             this.setState({
@@ -477,6 +478,7 @@ class Preview extends React.Component{
             let contentBg = Color2Str(setter.color);
             let contentText = setter.content;
             let contentPic = setter.pic;
+            const contentVid = setter.vid;
             let contentArr = [];
             let firstNotNullContentKey = 0;
             if(setter.animeInfo.changingInterval){
@@ -508,8 +510,8 @@ class Preview extends React.Component{
                 top: setter.y * this.state.wrate,
                 background: setterColor,
                 position : "absolute",
-                overflow : setter.animeInfo.setMarquee? "hidden":"none",
-                whiteSpace : setter.animeInfo.setMarquee?"nowrap":"normal",
+                overflow : (setter.animeInfo.setMarquee || setter.vid !== '' || setter.animeInfo.hoverScalePicOnly)? "hidden":"none",
+                whiteSpace : (setter.animeInfo.setMarquee || setter.vid !== '' || setter.animeInfo.hoverScalePicOnly)?"nowrap":"normal",
                 //默认不居中，只有内容设置居中才居中
                 //display : "flex",
                 //flexDirection: 'column',
@@ -540,7 +542,27 @@ class Preview extends React.Component{
         const reveal = setter.animeInfo.reveal;
         const setterText = contentText;
         let basicComponent = null;
-        if(contentPic !== ''){
+        if(contentVid !== ''){
+            basicComponent = 
+            <div 
+                style={setterStyle} > 
+                <video 
+                    loop="loop"
+                    muted="muted"
+                    playsInline="playsinline"
+                    autoPlay="autoplay"
+                    style={{
+                    position: "relative",
+                    width: "100%",
+                    height: "100%",
+                    objectFit: "cover",
+                    preload : "none",
+                    }}>
+                    <source src={setter.vid} type="video/mp4"/>
+                </video> 
+            </div>
+        }
+        else if(contentPic !== ''){
             //是图片组件
 
             //图片样式
@@ -554,24 +576,85 @@ class Preview extends React.Component{
                 position : "absolute"
                 
             }
+            //console.log("imgHoverScalePicOnlyStyle.width = " + imgHoverScalePicOnlyStyle.width + ", imgHoverScalePicOnlyStyle.top = " + imgHoverScalePicOnlyStyle.top + "imgHoverScalePicOnlyStyle.left = " +imgHoverScalePicOnlyStyle.left);  
         
             const imgNormalStyle = {
                 width : "100%",
             }
 
-            basicComponent = <div 
+            if(setter.animeInfo.hoverScale === 1){
+                //没有缩放效果：不要motion
+                basicComponent = 
+                <div 
                 style={setterStyle} 
                 onMouseMove={(event) => this.handleMouseMove(setter.index, event)}
                 onMouseOut={this.handleMouseOut}
                 onMouseEnter={() => this.handleMouseEnter(setter.index)}
                 onMouseLeave={() => this.handleMouseLeave(setter.index)}> 
                 <img 
-                    style={setter.animeInfo.hoverScalePicOnly? imgHoverScalePicOnlyStyle : imgNormalStyle}
+                    style={{
+                        width : "100%",
+                    }}
+                    //style={setter.animeInfo.hoverScalePicOnly? imgHoverScalePicOnlyStyle : imgNormalStyle}
+                    onMouseMove={(event) => this.handleMouseMove(setter.index, event)}
+                    onMouseOut={this.handleMouseOut}
+                    onMouseEnter={() => this.handleMouseEnter(setter.index)}
+                    onMouseLeave={() => this.handleMouseLeave(setter.index)}
                     src={contentPic} 
                     alt="failed to load picture:(" 
                     //width="100%"
-                    />           
-            </div>
+                    />      
+            </div>}
+            else{
+                //设置了缩放：要motion
+                basicComponent = 
+            <Motion style={{
+                width : spring(setterStyle.width),
+                height : spring(setterStyle.height),
+                top : spring(setterStyle.top),
+                left : spring(setterStyle.left)
+            }}>
+            {containerMotionStyle => <div 
+                style={{
+                    width : containerMotionStyle.width,
+                    //height : containerMotionStyle.height,
+                    top : containerMotionStyle.top,
+                    left : containerMotionStyle.left,
+                    position : setterStyle.position,
+                    overflow : setterStyle.overflow,
+                    whiteSpace : setterStyle.whiteSpace,
+                }} 
+                onMouseMove={(event) => this.handleMouseMove(setter.index, event)}
+                onMouseOut={this.handleMouseOut}
+                onMouseEnter={() => this.handleMouseEnter(setter.index)}
+                onMouseLeave={() => this.handleMouseLeave(setter.index)}> 
+                <Motion style={{
+                    width : spring(imgHoverScalePicOnlyStyle.width),
+                    top : spring(imgHoverScalePicOnlyStyle.top),
+                    left : spring(imgHoverScalePicOnlyStyle.left),
+                }}>
+                {motionStyle => 
+                <img 
+                    style={{
+                        width : setter.animeInfo.hoverScalePicOnly?motionStyle.width: "100%",
+                        top : setter.animeInfo.hoverScalePicOnly?motionStyle.top: 0,
+                        left : setter.animeInfo.hoverScalePicOnly?motionStyle.left: 0,
+                        position: "relative"
+                    }}
+                    //style={setter.animeInfo.hoverScalePicOnly? imgHoverScalePicOnlyStyle : imgNormalStyle}
+                    onMouseMove={(event) => this.handleMouseMove(setter.index, event)}
+                    onMouseOut={this.handleMouseOut}
+                    onMouseEnter={() => this.handleMouseEnter(setter.index)}
+                    onMouseLeave={() => this.handleMouseLeave(setter.index)}
+                    src={contentPic} 
+                    alt="failed to load picture:(" 
+                    //width="100%"
+                    />}
+                </Motion>           
+            </div>}
+            </Motion>
+            }
+            
         }else if(setter.animeInfo.setMarquee){
             //是文字组件，且有走马灯动效
             //走马灯动效与其他动效不同时使用
@@ -586,16 +669,52 @@ class Preview extends React.Component{
 
             
         }else{
-            //是文字组件，且无走马灯动效
-            basicComponent = <div 
+            if(setter.animeInfo.hoverScale === 1){
+                //没设置缩放：不要motion
+                basicComponent = 
+                <div 
                     style={setterStyle} 
                     dangerouslySetInnerHTML={{__html:setterText}}
                     onMouseMove={(event) => this.handleMouseMove(setter.index, event)}
                     onMouseOut={this.handleMouseOut}
                     onMouseEnter={() => this.handleMouseEnter(setter.index)}
                     onMouseLeave={() => this.handleMouseLeave(setter.index)}
-        >            
-        </div>
+                    >            
+                    </div>
+            }else{
+                //设置了缩放：要motion
+                //是文字组件，且无走马灯动效
+            basicComponent = 
+            <Motion style={{
+                width : spring(setterStyle.width),
+                height : spring(setterStyle.height),
+                top : spring(setterStyle.top),
+                left : spring(setterStyle.left)
+            }}>
+                {motionStyle => 
+                    <div 
+                    style={{
+                        width : motionStyle.width,
+                        height : motionStyle.height,
+                        top : motionStyle.top,
+                        left : motionStyle.left,
+                        background : setterStyle.background,
+                        position : setterStyle.position,
+                        overflow : setterStyle.overflow,
+                        whiteSpace : setterStyle.whiteSpace,
+                    }} 
+                    dangerouslySetInnerHTML={{__html:setterText}}
+                    onMouseMove={(event) => this.handleMouseMove(setter.index, event)}
+                    onMouseOut={this.handleMouseOut}
+                    onMouseEnter={() => this.handleMouseEnter(setter.index)}
+                    onMouseLeave={() => this.handleMouseLeave(setter.index)}
+                    >            
+                    </div>
+                }
+            
+        </Motion>
+            }
+            
         }
         
         
