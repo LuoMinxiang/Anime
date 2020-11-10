@@ -26,8 +26,8 @@ class ScrollLayoutSetter extends React.Component{
                 if(activeKeyInfo.index !== this.state.curActiveKey){
                     //切换setter：使用新传入的setter的位置和宽高
                     this.setState({
-                        width : activeKeyInfo.width,
-                        height : activeKeyInfo.height,
+                        width : activeKeyInfo.animeInfo.hasScrollEffect? activeKeyInfo.animeInfo.endSize.width : activeKeyInfo.width,
+                        height : activeKeyInfo.animeInfo.hasScrollEffect? activeKeyInfo.animeInfo.endSize.height : activeKeyInfo.height,
                         x : activeKeyInfo.animeInfo.hasScrollEffect? activeKeyInfo.animeInfo.endXY.x : activeKeyInfo.x + 200,
                         y : activeKeyInfo.animeInfo.hasScrollEffect? activeKeyInfo.animeInfo.endXY.y : activeKeyInfo.y + 200,
                         startX : activeKeyInfo.x,

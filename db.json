@@ -7,14 +7,19 @@
         "index": 0,
         "width": 320,
         "height": 200,
-        "x": 208,
-        "y": 108,
-        "pic": "http://127.0.0.1:8081/public/image/a.jpg",
+        "x": 252,
+        "y": 137,
+        "pic": "",
         "vid": "",
-        "color": "transparent",
+        "color": {
+          "r": 245,
+          "g": 166,
+          "b": 35,
+          "a": 1
+        },
         "content": "",
         "animeInfo": {
-          "reveal": "Zoom",
+          "reveal": "",
           "setMarquee": false,
           "changingContentArr": [],
           "changingInterval": 0,
@@ -28,25 +33,25 @@
           "startScrollTop": 0,
           "endScrollTop": 0,
           "startXY": {
-            "x": 208,
-            "y": 108
-          },
-          "endXY": {
             "x": 0,
             "y": 0
           },
-          "deltaX": null,
-          "deltaY": null,
-          "startSize": {
-            "width": 320,
-            "height": 200
+          "endXY": {
+            "x": -1,
+            "y": -1
           },
-          "endSize": {
+          "deltaX": 0,
+          "deltaY": 0,
+          "startSize": {
             "width": 0,
             "height": 0
           },
-          "deltaWidth": null,
-          "deltaHeight": null,
+          "endSize": {
+            "width": -1,
+            "height": -1
+          },
+          "deltaWidth": 0,
+          "deltaHeight": 0,
           "hasScrollEffect": false
         }
       }

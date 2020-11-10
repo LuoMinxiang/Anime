@@ -20,7 +20,7 @@ class TinymceEditor extends React.Component{
         super(props);
         this.state = {
           //如果传入的文本不为空就将初始文本设置为传入的文本，否则初始的文本是sampleContent
-          data: this.props.text || sampleContent
+          data: this.props.text || ""
         };
       }
     

@@ -173,11 +173,11 @@ class WebCanvas extends React.Component{
               startScrollTop : 0,
               endScrollTop : 0,
               startXY : {x:0, y:0},
-              endXY : {x:0, y:0},
+              endXY : {x:-1, y:-1},
               deltaX : 0,
               deltaY : 0,
               startSize : {width:0, height:0},
-              endSize : {width:0, height:0},
+              endSize : {width:-1, height:-1},
               deltaWidth : 0,
               deltaHeight : 0,
               //判断是否设置过下滚动效：方便preview中放进数组里在onscroll中遍历
@@ -705,7 +705,7 @@ class WebCanvas extends React.Component{
     const startScrollTopLine = {
       visibility : startLineVisibility?"visible":"hidden",
       width : "100%",
-      borderTop : "dashed 3px blue",
+      borderTop : "dashed 3px orange",
       position : "absolute",
       top : this.state.startScrollTopToBeSet,  //activeStartScrollTop,
       left : 0

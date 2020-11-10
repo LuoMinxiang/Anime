@@ -158,7 +158,7 @@ class Preview extends React.Component{
                         setter.height = originalScrollHeight  + setterAnimeInfo.deltaHeight * totalScrollTop;
                         arr[i] = setter;
                         this.setState({setters : arr});
-                        console.log("preview - onscroll - setter.y = " + setter.y);
+                        //console.log("preview - onscroll - setter.y = " + setter.y);
                     }
                 }
                 

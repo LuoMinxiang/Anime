@@ -46,7 +46,7 @@ class ControlledAccordions extends React.Component{
             open : false,
             //常变内容/颜色数组
             contentInfoArr : (this.props.activeKeyInfo === null || typeof(this.props.activeKeyInfo) === 'undefined')? [] : [{
-                name : 'Text0',
+                name : '内容0',
                 activeKeyColor : this.props.activeKeyInfo.color,
                 activeKeyContent : this.props.activeKeyInfo.content,
                 activeKeyPic : this.props.activeKeyInfo.pic,
@@ -130,7 +130,7 @@ class ControlledAccordions extends React.Component{
                 //切换选中setter：改变state的contentInfoArr,interval和curActiveKey值
                 this.setState({
                     contentInfoArr : [{
-                        name : 'Text0',
+                        name : '内容0',
                         activeKeyColor : this.props.activeKeyInfo.color,
                         activeKeyContent : this.props.activeKeyInfo.content,
                         activeKeyPic : this.props.activeKeyInfo.pic,
@@ -191,7 +191,7 @@ class ControlledAccordions extends React.Component{
             //初始化新添加的内容项的文字和颜色：初始值都为静态设置的内容
             let arr = [...this.state.contentInfoArr];
             const contentInfo = {} //this.state.contentInfoArr[0];
-            contentInfo.name = 'Content' + this.state.contentInfoArr.length;
+            contentInfo.name = '内容' + this.state.contentInfoArr.length;
             contentInfo.activeKeyColor = this.state.contentInfoArr[0].activeKeyColor;
             contentInfo.activeKeyContent = this.state.contentInfoArr[0].activeKeyContent;
             contentInfo.activeKeyPic = this.state.contentInfoArr[0].activeKeyPic;
@@ -473,7 +473,7 @@ class ControlledAccordions extends React.Component{
           </Tooltip>
           )}
           <Chip
-              label="Add Text"
+              label="添加内容"
               onClick={this.handleAddChipClick}
               variant="outlined"
               style={this.chipStyle}

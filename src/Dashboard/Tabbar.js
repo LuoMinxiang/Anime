@@ -130,7 +130,7 @@ class Tabbar extends React.Component{
             {(activeKeyInfo) => {
               if(this.props.anime){
                 //主设置栏：初始值为Hello，World
-                return <TinymceEditor text="<p>Hello World</p>"></TinymceEditor>
+                return <TinymceEditor text={activeKeyInfo? activeKeyInfo.content: ""}></TinymceEditor>
               }else{
                 //设置常变动效内容，文本为传入参数的文本
                 return <TinymceEditor text={this.props.text} onTextChanged={this.props.onTextChanged}></TinymceEditor>

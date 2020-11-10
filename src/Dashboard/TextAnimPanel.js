@@ -47,14 +47,14 @@ class TextAnimPanel extends React.Component{
             startScrollTop : 0,
             endScrollTop : 0,
             startXY : {x:0, y:0},
-            endXY : {x:0, y:0},
+            endXY : {x:-1, y:-1},
             deltaX : 0,
             deltaY : 0,
             //判断是否设置过下滚动效：方便preview中放进数组里在onscroll中遍历
             hasScrollEffect : false,
             //下滚动效：初始{width，height}，终止{width，height}，width单位增量，height单位增量
             startSize : {width : 320, height : 200},
-            endSize : {width : 320, height : 200},
+            endSize : {width : -1, height : -1},
             deltaWidth : 0,
             deltaHeight : 0,
         }
@@ -280,13 +280,13 @@ class TextAnimPanel extends React.Component{
                     this.animInfo.startXY.x = activeKeyInfo.x;
                     this.animInfo.startXY.y = activeKeyInfo.y;
                     //console.log("textAnimPanel - setter.x = " + activeKeyInfo.x + ", setter.y = " + activeKeyInfo.y)
-                    this.animInfo.endXY.x = activeKeyInfo.animeInfo.endXY.x;
-                    this.animInfo.endXY.y = activeKeyInfo.animeInfo.endXY.y;
+                    this.animInfo.endXY.x = activeKeyInfo.animeInfo.endXY.x !== -1? activeKeyInfo.animeInfo.endXY.x: activeKeyInfo.x + 200;
+                    this.animInfo.endXY.y = activeKeyInfo.animeInfo.endXY.y !== -1? activeKeyInfo.animeInfo.endXY.y: activeKeyInfo.y + 200;
                     this.animInfo.hasScrollEffect = activeKeyInfo.animeInfo.hasScrollEffect;
                     this.animInfo.startSize.width = activeKeyInfo.width;
                     this.animInfo.startSize.height = activeKeyInfo.height;
-                    this.animInfo.endSize.width = activeKeyInfo.animeInfo.endSize.width;
-                    this.animInfo.endSize.height = activeKeyInfo.animeInfo.endSize.height;
+                    this.animInfo.endSize.width = activeKeyInfo.animeInfo.endSize.width !== -1? activeKeyInfo.animeInfo.endSize.width: activeKeyInfo.width;
+                    this.animInfo.endSize.height = activeKeyInfo.animeInfo.endSize.height !== -1? activeKeyInfo.animeInfo.endSize.height: activeKeyInfo.height;
 
                     return <ScrollSetter
                                 handleSettingFinished={this.handleScrollSettingFinished}

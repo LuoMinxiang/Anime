@@ -153,7 +153,7 @@ class HoverSetter extends React.Component{
             //初始化新添加的悬停出现内容项的文字和颜色：初始颜色是透明，初始文字是空字符串
             let arr = [...this.state.contentInfoArr];
             const contentInfo = {} //this.state.contentInfoArr[0];
-            contentInfo.name = 'Content' + this.state.contentInfoArr.length;
+            contentInfo.name = '内容' + this.state.contentInfoArr.length;
             contentInfo.activeKeyColor = "transparent";
             contentInfo.activeKeyContent = "";
             contentInfo.activeKeyPic = "";
@@ -428,7 +428,7 @@ class HoverSetter extends React.Component{
           </Tooltip>
           )}
           <Chip
-              label="Add Text"
+              label="添加内容"
               onClick={this.handleAddChipClick}
               variant="outlined"
               style={this.chipStyle}

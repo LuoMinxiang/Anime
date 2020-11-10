@@ -18,6 +18,8 @@ import ChevronLeftIcon from '@material-ui/icons/ChevronLeft';
 import { ListMenu } from './listItems';
 import WebCanvas from '../WebCanvas/WebCanvas';
 import Button from '@material-ui/core/Button';
+import { createMuiTheme, ThemeProvider } from '@material-ui/core/styles';
+import toolBarImage from "./toolbarBackground.JPG";
 
 import EventEmitter from '../Utils/EventEmitter';
 import { Link } from 'react-router-dom'
@@ -27,12 +29,24 @@ import { Link } from 'react-router-dom'
 const drawerWidth = 240;
 const canvasHeightUnit = 712;
 
+//重写toolBar的主题
+const theme = createMuiTheme({
+  props: {
+    // Style sheet name ⚛️
+    Toolbar: {
+      // Name of the rule
+      primary: "deeporange",
+    },
+  },
+});
+
 const useStyles = makeStyles((theme) => ({
   root: {
     display: 'flex',
   },
   toolbar: {
     paddingRight: 24, // keep right padding when drawer closed
+    backgroundImage: 'url(' + toolBarImage + ')'
   },
   toolbarIcon: {
     display: 'flex',
@@ -188,15 +202,15 @@ export default function Dashboard() {
       <CssBaseline />
       <AppBar position="absolute" className={clsx(classes.appBar, open && classes.appBarShift)}>
         <Toolbar className={classes.toolbar}>
-          <IconButton
+          {/*<IconButton
             edge="start"
             color="inherit"
             aria-label="open drawer"
             onClick={handleDrawerOpen}
             className={clsx(classes.menuButton, open && classes.menuButtonHidden)}
           >
-            <MenuIcon />
-          </IconButton>
+          <MenuIcon />
+          </IconButton>*/}
           <Typography component="h1" variant="h6" color="inherit" noWrap className={classes.title}>
             Animé
           </Typography>

@@ -254,7 +254,7 @@ class ScrollSetter extends React.Component{
           <AccordionDetails style={this.detailStyle}>
               <div>
               <TextField
-                label="CurScrollTop"
+                label="当前下滚幅度"
                 style={this.oneTextFieldStyle}
                 value={this.state.curScrollTop}
                 InputLabelProps={{
@@ -264,7 +264,7 @@ class ScrollSetter extends React.Component{
             <br/>
               <TextField
                 id="standard-number"
-                label="StartScrollTop"
+                label="下滚动效开始线"
                 type="number"
                 style={this.oneTextFieldStyle}
                 onChange={this.handleStartScrollTopChange}
@@ -281,13 +281,13 @@ class ScrollSetter extends React.Component{
                 }}
             />
             &nbsp;&nbsp;&nbsp;&nbsp;
-            <Button variant="outlined" color="primary" onClick={this.handleSetStartScrollTop}>
+            <Button variant="outlined" style={{borderColor: "orange", color: "orange"}} onClick={this.handleSetStartScrollTop}>
                 确定
             </Button>
               <br/>
               <TextField
                 id="standard-number"
-                label="EndScrollTop"
+                label="下滚动效结束线"
                 type="number"
                 onChange={this.handleEndScrollTopChange}
                 value={this.state.endScrollTop}
@@ -310,7 +310,7 @@ class ScrollSetter extends React.Component{
               <br/>
               <TextField
                 id="standard-number"
-                label="StartX"
+                label="起始x坐标"
                 disabled
                 value={this.state.startX}
                 style={this.twoTextFieldStyle}
@@ -328,7 +328,7 @@ class ScrollSetter extends React.Component{
             &nbsp;&nbsp;
             <TextField
                 id="standard-number"
-                label="StartY"
+                label="起始y坐标"
                 disabled
                 value={this.state.startY}
                 style={this.twoTextFieldStyle}
@@ -346,7 +346,7 @@ class ScrollSetter extends React.Component{
               <br/>
               <TextField
                 id="standard-number"
-                label="EndX"
+                label="终止x坐标"
                 disabled
                 value={this.state.endX}
                 style={this.twoTextFieldStyle}
@@ -364,7 +364,7 @@ class ScrollSetter extends React.Component{
             &nbsp;&nbsp;    
             <TextField
                 id="standard-number"
-                label="EndY"
+                label="终止y坐标"
                 disabled
                 value={this.state.endY}
                 style={this.twoTextFieldStyle}
@@ -382,7 +382,7 @@ class ScrollSetter extends React.Component{
             <br/>
               <TextField
                 id="standard-number"
-                label="StartWidth"
+                label="起始宽度"
                 disabled
                 value={this.state.startWidth}
                 style={this.twoTextFieldStyle}
@@ -400,7 +400,7 @@ class ScrollSetter extends React.Component{
             &nbsp;&nbsp;
             <TextField
                 id="standard-number"
-                label="StartHeight"
+                label="起始高度"
                 disabled
                 value={this.state.startHeight}
                 style={this.twoTextFieldStyle}
@@ -418,7 +418,7 @@ class ScrollSetter extends React.Component{
               <br/>
               <TextField
                 id="standard-number"
-                label="EndWidth"
+                label="终止宽度"
                 disabled
                 value={this.state.endWidth}
                 style={this.twoTextFieldStyle}
@@ -436,7 +436,7 @@ class ScrollSetter extends React.Component{
             &nbsp;&nbsp;    
             <TextField
                 id="standard-number"
-                label="EndHeight"
+                label="终止高度"
                 disabled
                 value={this.state.endHeight}
                 style={this.twoTextFieldStyle}
