@@ -1,14 +1,14 @@
 {
   "setterInfo": {
-    "totalN": 1,
+    "totalN": 2,
     "setters": [
       {
-        "totalN": 1,
+        "totalN": 2,
         "index": 0,
         "width": 320,
         "height": 200,
-        "x": 252,
-        "y": 137,
+        "x": 175,
+        "y": 366,
         "pic": "",
         "vid": "",
         "color": {
@@ -23,6 +23,94 @@
           "setMarquee": false,
           "changingContentArr": [],
           "changingInterval": 0,
+          "trailingContentArr": [
+            {
+              "name": "内容0",
+              "activeKeyColor": {
+                "r": 184,
+                "g": 233,
+                "b": 134,
+                "a": 1
+              },
+              "activeKeyContent": "",
+              "activeKeyPic": ""
+            }
+          ],
+          "trailingInterval": 0,
+          "trailerWidth": 100,
+          "trailerHeight": 100,
+          "hoverScalePicOnly": false,
+          "hoverScale": 1,
+          "hoverContentArr": [],
+          "startScrollTop": 0,
+          "endScrollTop": 0,
+          "startXY": {
+            "x": 175,
+            "y": 366
+          },
+          "endXY": {
+            "x": 375,
+            "y": 566
+          },
+          "deltaX": null,
+          "deltaY": null,
+          "startSize": {
+            "width": 320,
+            "height": 200
+          },
+          "endSize": {
+            "width": 320,
+            "height": 200
+          },
+          "deltaWidth": null,
+          "deltaHeight": null,
+          "hasScrollEffect": false
+        }
+      },
+      {
+        "totalN": 2,
+        "index": 1,
+        "width": 320,
+        "height": 200,
+        "x": 385,
+        "y": 119,
+        "pic": "",
+        "vid": "",
+        "color": {
+          "r": 74,
+          "g": 144,
+          "b": 226,
+          "a": 1
+        },
+        "content": "",
+        "animeInfo": {
+          "reveal": "",
+          "setMarquee": false,
+          "changingContentArr": [
+            {
+              "name": "内容0",
+              "activeKeyColor": {
+                "r": 74,
+                "g": 144,
+                "b": 226,
+                "a": 1
+              },
+              "activeKeyContent": "",
+              "activeKeyPic": ""
+            },
+            {
+              "name": "内容1",
+              "activeKeyColor": {
+                "r": 208,
+                "g": 2,
+                "b": 27,
+                "a": 1
+              },
+              "activeKeyContent": "",
+              "activeKeyPic": ""
+            }
+          ],
+          "changingInterval": 7,
           "trailingContentArr": [],
           "trailingInterval": 0,
           "trailerWidth": 0,
@@ -33,25 +121,25 @@
           "startScrollTop": 0,
           "endScrollTop": 0,
           "startXY": {
-            "x": 0,
-            "y": 0
+            "x": 385,
+            "y": 119
           },
           "endXY": {
-            "x": -1,
-            "y": -1
+            "x": 585,
+            "y": 319
           },
-          "deltaX": 0,
-          "deltaY": 0,
+          "deltaX": null,
+          "deltaY": null,
           "startSize": {
-            "width": 0,
-            "height": 0
+            "width": 320,
+            "height": 200
           },
           "endSize": {
-            "width": -1,
-            "height": -1
+            "width": 320,
+            "height": 200
           },
-          "deltaWidth": 0,
-          "deltaHeight": 0,
+          "deltaWidth": null,
+          "deltaHeight": null,
           "hasScrollEffect": false
         }
       }
@@ -65,5 +153,203 @@
   },
   "canvasLength": {
     "canvasHeight": 712
+  },
+  "webcanvasInfo": {
+    "LayoutSetterArray": [
+      1,
+      1,
+      1
+    ],
+    "setterColorArray": [
+      {
+        "r": 245,
+        "g": 166,
+        "b": 35,
+        "a": 1
+      },
+      {
+        "r": 74,
+        "g": 144,
+        "b": 226,
+        "a": 1
+      },
+      "transparent"
+    ],
+    "setterContentArray": [],
+    "setterPicArray": [
+      "",
+      "",
+      "http://127.0.0.1:8081/public/image/tokyo.jpg"
+    ],
+    "setterVidArray": [
+      "",
+      "",
+      ""
+    ],
+    "setterAniInfoArray": [
+      {
+        "reveal": "",
+        "setMarquee": false,
+        "changingContentArr": [],
+        "changingInterval": 0,
+        "trailingContentArr": [
+          {
+            "name": "内容0",
+            "activeKeyColor": {
+              "r": 184,
+              "g": 233,
+              "b": 134,
+              "a": 1
+            },
+            "activeKeyContent": "",
+            "activeKeyPic": ""
+          }
+        ],
+        "trailingInterval": 0,
+        "trailerWidth": 100,
+        "trailerHeight": 100,
+        "hoverScalePicOnly": false,
+        "hoverScale": 1,
+        "hoverContentArr": [],
+        "startScrollTop": 0,
+        "endScrollTop": 0,
+        "startXY": {
+          "x": 175,
+          "y": 366
+        },
+        "endXY": {
+          "x": 375,
+          "y": 566
+        },
+        "deltaX": null,
+        "deltaY": null,
+        "startSize": {
+          "width": 320,
+          "height": 200
+        },
+        "endSize": {
+          "width": 320,
+          "height": 200
+        },
+        "deltaWidth": null,
+        "deltaHeight": null,
+        "hasScrollEffect": false
+      },
+      {
+        "reveal": "",
+        "setMarquee": false,
+        "changingContentArr": [
+          {
+            "name": "内容0",
+            "activeKeyColor": {
+              "r": 74,
+              "g": 144,
+              "b": 226,
+              "a": 1
+            },
+            "activeKeyContent": "",
+            "activeKeyPic": ""
+          },
+          {
+            "name": "内容1",
+            "activeKeyColor": {
+              "r": 208,
+              "g": 2,
+              "b": 27,
+              "a": 1
+            },
+            "activeKeyContent": "",
+            "activeKeyPic": ""
+          }
+        ],
+        "changingInterval": 7,
+        "trailingContentArr": [],
+        "trailingInterval": 0,
+        "trailerWidth": 0,
+        "trailerHeight": 0,
+        "hoverScalePicOnly": false,
+        "hoverScale": 1,
+        "hoverContentArr": [],
+        "startScrollTop": 0,
+        "endScrollTop": 0,
+        "startXY": {
+          "x": 385,
+          "y": 119
+        },
+        "endXY": {
+          "x": 585,
+          "y": 319
+        },
+        "deltaX": null,
+        "deltaY": null,
+        "startSize": {
+          "width": 320,
+          "height": 200
+        },
+        "endSize": {
+          "width": 320,
+          "height": 200
+        },
+        "deltaWidth": null,
+        "deltaHeight": null,
+        "hasScrollEffect": false
+      },
+      {
+        "reveal": "",
+        "setMarquee": false,
+        "changingContentArr": [],
+        "changingInterval": 0,
+        "trailingContentArr": [],
+        "trailingInterval": 0,
+        "trailerWidth": 0,
+        "trailerHeight": 0,
+        "hoverScalePicOnly": false,
+        "hoverScale": 1,
+        "hoverContentArr": [],
+        "startScrollTop": 0,
+        "endScrollTop": 0,
+        "startXY": {
+          "x": 0,
+          "y": 0
+        },
+        "endXY": {
+          "x": -1,
+          "y": -1
+        },
+        "deltaX": 0,
+        "deltaY": 0,
+        "startSize": {
+          "width": 0,
+          "height": 0
+        },
+        "endSize": {
+          "width": -1,
+          "height": -1
+        },
+        "deltaWidth": 0,
+        "deltaHeight": 0,
+        "hasScrollEffect": false
+      }
+    ],
+    "setterPosSizeArray": [
+      {
+        "x": 175,
+        "y": 366,
+        "width": 320,
+        "height": 200
+      },
+      {
+        "x": 385,
+        "y": 119,
+        "width": 320,
+        "height": 200
+      },
+      {
+        "x": 775,
+        "y": 77,
+        "width": 320,
+        "height": 200
+      }
+    ]
   }
 }

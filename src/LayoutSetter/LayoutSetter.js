@@ -26,10 +26,10 @@ class LayoutSetter extends React.Component{
   constructor(props){
     super(props);
     this.state = {
-      width : 320,
-      height : 200,
-      x : 0,
-      y : this.props.canvasScrollTop?this.props.canvasScrollTop:0,
+      width : this.props.width? this.props.width: 320,
+      height : this.props.height? this.props.height: 200,
+      x : this.props.x? this.props.x: 0,
+      y : this.props.y? this.props.y: this.props.canvasScrollTop?this.props.canvasScrollTop:0,
       //当前参数的计时器时间间隔值（用于判断传入参数是否发生改变）
       curPropsInterval : 0,
       //修改当前内容，用来调用render：）
@@ -132,9 +132,9 @@ class LayoutSetter extends React.Component{
       }
       body = JSON.stringify(settersInfo);
       
-     //fetch('http://127.0.0.1:8081/',{
+     fetch('http://127.0.0.1:8081/setterInfo/0',{
      //json-server测试接口
-     fetch('http://127.0.0.1:3000/setterInfo',{
+     //fetch('http://127.0.0.1:3000/setterInfo',{
        method:'post',
        mode:'cors',
        headers:{
@@ -324,28 +324,36 @@ setMarqueeTimer(spanWidth){
 }
 
 handleMouseMove(event){
+  //console.log("LayoutSetter - handleMouseMove");
   //鼠标移动到画布内，出现鼠标跟随
   //这里event.client指的是在整个屏幕中的坐标，不是以画布组件的左上角为原点，而是以屏幕左上角为原点
   //故直接用event.client设置鼠标跟随位置，跟随组件会始终与鼠标差一个画布左上角到屏幕左上角的差值
   //要想鼠标跟随控件直接跟随鼠标，必须用event.client减去画布左上角与屏幕左上角的差值作为鼠标跟随坐标
-  const boundingRect = ReactDOM.findDOMNode(this.divRef).getBoundingClientRect();
-  this.setState({
-      trailTop : (event.clientY - boundingRect.top),
-      trailLeft : (event.clientX - boundingRect.left)
-  })
-  this.setState({showTrailer : true});
+  if(this.props.vid === '' && this.props.pic === '' && !this.props.animeInfo.setMarquee){
+    const boundingRect = ReactDOM.findDOMNode(this.divRef).getBoundingClientRect();
+    this.setState({
+        trailTop : (event.clientY - boundingRect.top),
+        trailLeft : (event.clientX - boundingRect.left)
+    })
+    this.setState({showTrailer : true});
 
-  //阻止事件冒泡（子组件直接处理事件，父组件不会再处理事件），在有setter的局部跟随区域内防止触发画布部分的跟随事件
-  event.cancelBubble = true;
-  event.stopPropagation();
+    //阻止事件冒泡（子组件直接处理事件，父组件不会再处理事件），在有setter的局部跟随区域内防止触发画布部分的跟随事件
+    event.cancelBubble = true;
+    event.stopPropagation();
+  }
+  
 }
 
 handleMouseOut(){
+  //console.log("LayoutSetter - handleMouseOut");
+
   this.setState({showTrailer : false});
 }
 
 //悬停回调函数
 handleMouseEnter(){
+  //console.log("LayoutSetter - handleMouseEnter");
+
   //缩放:记下原始宽高，改变state中的宽高
   if(this.props.animeInfo.hoverScalePicOnly !== true && this.props.activeKey !== this.props.index){
     //没选中：只有没选中时才有悬停缩放的效果，否则不好拖拽
@@ -396,6 +404,8 @@ handleMouseLeavePic(){
 
 //取消悬停回调函数
 handleMouseLeave(){
+  //console.log("LayoutSetter - handleMouseLeave");
+
   //恢复缩放
     //选没选中都要恢复：有可能缩放后才选中
     if(this.props.animeInfo.hoverScalePicOnly !== true && this.props.animeInfo.hoverScale !== 1){
@@ -479,7 +489,7 @@ sendSetterInfo(){
         EventEmitter.emit("activeKeyInfo", null);
       }
       */
-     this.sendSetterInfo()
+     this.sendSetterInfo();
 
 
       //确定setter的颜色和文字
@@ -641,6 +651,7 @@ sendSetterInfo(){
    {this.props.vid === '' && this.props.pic === ''? this.props.animeInfo.setMarquee? 
    <div ref={element => this.marqueeRef = element} style={marqueeStyle} dangerouslySetInnerHTML={{__html:(this.props.data !== null && typeof(this.props.data) !== 'undefined') ? this.props.data.replace(/<p/g,'<span').replace(/p>/g,'span>') + this.marqueeFillingArr : this.props.data}}></div>
    : <div  
+     //dangerouslySetInnerHTML={{__html:contentText}}
      dangerouslySetInnerHTML={{__html:contentText}}
      style={divStyle}
      onMouseMove={this.handleMouseMove}
@@ -688,6 +699,7 @@ sendSetterInfo(){
           this.originalY = d.y; 
           this.originalScrollX = d.x;
           this.originalScrollY = d.y;
+          this.props.handleLayoutSetterPosChange(this.props.index, d.x, d.y);
         }}
         onResizeStart={() => {
           this.setState({
@@ -716,6 +728,7 @@ sendSetterInfo(){
           });
           this.originalHeight = setterHeight;
           this.originalWidth = setterWidth;
+          this.props.handleLayoutSetterSizeChange(this.props.index, setterWidth, setterHeight);
       }}>
 
         {innerBasicComponent}
@@ -728,6 +741,10 @@ sendSetterInfo(){
         //使用不带motion的basicComponent
         this.basicComponent = 
         <Rnd 
+        onMouseMove={this.handleMouseMove}
+     onMouseOut={this.handleMouseOut}
+     onMouseEnter={this.handleMouseEnter}
+     onMouseLeave={this.handleMouseLeave}
         style={this.props.activeKey==this.props.index?activeLayoutSetterStyle:layoutSetterStyle}
         //size={{ width: this.props.activeKey === this.props.index?this.originalWidth:this.state.width,  height: this.props.activeKey === this.props.index?this.originalHeight:this.state.height }}
         size={{ width: this.state.width,  height: this.state.height }}
@@ -747,6 +764,8 @@ sendSetterInfo(){
           this.originalY = d.y; 
           this.originalScrollX = d.x;
           this.originalScrollY = d.y;
+
+          this.props.handleLayoutSetterPosChange(this.props.index, d.x, d.y);
         }}
         onResizeStart={() => {
           this.setState({
@@ -775,6 +794,8 @@ sendSetterInfo(){
           });
           this.originalHeight = setterHeight;
           this.originalWidth = setterWidth;
+
+          this.props.handleLayoutSetterSizeChange(this.props.index, setterWidth, setterHeight);
       }}>
 
         {innerBasicComponent}

@@ -166,9 +166,9 @@ class Preview extends React.Component{
         }.bind(this);
         
         //向后端发出请求，请求所有setter的信息
-        //fetch('http://127.0.0.1:8081/setterInfo')
+        fetch('http://127.0.0.1:8081/setterInfo/0')
         //json-server测试地址
-        fetch('http://127.0.0.1:3000/setterInfo')
+        //fetch('http://127.0.0.1:3000/setterInfo')
         .then(res => res.json())
         .then(data => {
             //定时器设置
@@ -276,7 +276,8 @@ class Preview extends React.Component{
      
         //从数据库中取出画布信息
         //json-server测试地址
-        fetch('http://127.0.0.1:3000/canvasInfo')
+        //fetch('http://127.0.0.1:3000/canvasInfo')
+        fetch('http://127.0.0.1:8081/canvasInfo/0')
         .then(res => res.json())
         .then(data => {
             //设置画布跟随动效
@@ -303,7 +304,8 @@ class Preview extends React.Component{
 
         //从数据库中取出画布高度
         //json-server测试地址
-        fetch('http://127.0.0.1:3000/canvasLength')
+        //fetch('http://127.0.0.1:3000/canvasLength')
+        fetch('http://127.0.0.1:8081/canvasLength/0')
         .then(res => res.json())
         .then(data => {
             //设置画布高度

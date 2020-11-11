@@ -146,6 +146,8 @@ export default function Dashboard() {
   const [picUrl, setPicUrl] = React.useState('');
   //上传的视频url
   const [vidUrl, setVidUrl] = React.useState('');
+  //通知webcanvas上传数据结构的变量
+  const [save, setSave] = React.useState(false);
 
   const handleDrawerOpen = () => {
     setOpen(true);
@@ -178,7 +180,6 @@ export default function Dashboard() {
   }
 
   const handleImageUploaded = (imgUrl) => {
-    console.log("dashboard - imgUrl = " + imgUrl);
     setPicUrl(imgUrl);
     
   }
@@ -194,6 +195,17 @@ export default function Dashboard() {
 
   const handleVideoClear = () => {
     setVidUrl('');
+  }
+
+  const handleSaveClick = () => {
+    //alert("save clicked");
+    //点击保存后通知webcanvas将数据结构上传到后端
+    setSave(true);
+  }
+
+  //webcanvas将数据结构上传至后端后的回调函数
+  const handleSaveFinished = () => {
+    setSave(false);
   }
 
   return (
@@ -217,6 +229,10 @@ export default function Dashboard() {
 
           <Button variant="outlined" color="inherit" onClick={handlePreviewClick}>
               <Link to="/preview" target="_blank" style={{ textDecoration:'none', color:'white'}}>预览</Link>
+          </Button>
+
+          <Button style={{marginLeft: "10px"}} variant="outlined" color="inherit" onClick={handleSaveClick}>
+              保存
           </Button>
           
         </Toolbar>
@@ -256,6 +272,8 @@ export default function Dashboard() {
                   scrollTop={canvasScrollTop}
                   imgUploaded={picUrl}
                   vidUploaded={vidUrl}
+                  save={save}
+                  handleSaveFinished={handleSaveFinished}
                 ></WebCanvas>
               </Paper>
             </Grid>

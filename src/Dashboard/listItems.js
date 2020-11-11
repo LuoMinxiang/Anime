@@ -125,7 +125,6 @@ class ListMenu extends React.Component{
             添加布局组件
         </Button>
     
-    {this.state.addBtnDrop?
     <div style={this.tabStyle}>
       <ActiveKeyInfoContext.Provider value={this.state.activeKeyInfo}>
       {this.state.contentType === "image"? 
@@ -191,7 +190,6 @@ class ListMenu extends React.Component{
         contentType={this.state.contentType}/> : null}
       </ActiveKeyInfoContext.Provider>
     </div>
-      :null}
     {/*<ActiveKeyInfoContext.Provider value={this.state.activeKeyInfo}>
  <ImageLoadDialog
       open={this.state.imgOpen}

@@ -92,6 +92,12 @@ class WebCanvas extends React.Component{
         //是否传递setter信息
         this.sendInfo = false;
 
+        //当前是否保存
+        this.save = false;
+
+        //按编号排序的setter位置和大小信息集合
+        this.setterPosSizeArray = [];
+
         this.handleSetterClick = this.handleSetterClick.bind(this);
         this.handleCanvasClick = this.handleCanvasClick.bind(this);
         this.handleKeyDown = this.handleKeyDown.bind(this);
@@ -107,23 +113,47 @@ class WebCanvas extends React.Component{
         this.handleScrollSetterPositionChange = this.handleScrollSetterPositionChange.bind(this);
         this.handleHasSetScrollEffect = this.handleHasSetScrollEffect.bind(this);
         this.handleScrollSetterSizeChange = this.handleScrollSetterSizeChange.bind(this);
-
+        this.handleLayoutSetterPosChange = this.handleLayoutSetterPosChange.bind(this);
+        this.handleLayoutSetterSizeChange = this.handleLayoutSetterSizeChange.bind(this);
     }
     componentDidMount(){
-      //将画布高度信息上传至数据库
-      const canvasLengthobj = {canvasHeight : this.props.pageLength};
-      const body = JSON.stringify(canvasLengthobj);
-      //json-server测试接口
-      fetch('http://127.0.0.1:3000/canvasLength',{
-          method:'post',
-          mode:'cors',
-          headers:{
-              'Content-Type': 'application/json;charset=UTF-8',
-              'Accept':'application/json, text/plain'
-          },
-          body: body
+      //从后端请求数据结构
+      //json-server测试地址
+      //fetch('http://127.0.0.1:3000/webcanvasInfo')
+      fetch('http://127.0.0.1:8081/webcanvasInfo/0')
+      .then(res => res.json())
+      .then(data => {
+          //设置请求回来的数据结构
+          this.setterPosSizeArray = data.setterPosSizeArray;
+          this.setState({
+            LayoutSetterArray : data.LayoutSetterArray,
+            setterColorArray : data.setterColorArray,
+            setterContentArray : data.setterContentArray,
+            setterPicArray : data.setterPicArray,
+            setterVidArray : data.setterVidArray,
+            setterAniInfoArray : data.setterAniInfoArray,
+          });
       })
-      .catch(e => console.log('错误:', e))
+      .catch(e => console.log('错误:', e)) 
+
+      //json-server测试地址
+      //fetch('http://127.0.0.1:3000/canvasInfo')
+      fetch('http://127.0.0.1:8081/canvasInfo/0')
+      .then(res => res.json())
+      .then(data => {
+          //设置请求回来的数据结构
+          let visibility = false;
+          if(data.trailingContentArr.length !== 0){
+            visibility = true;
+          }
+          this.setState({
+            canvasAnimInfo : data,
+            showTrailer : visibility,
+          });
+      })
+      .catch(e => console.log('错误:', e)) 
+
+      
 
       //新增布局组件函数
         this.emitter1 = EventEmitter.addListener("ClickedAddLayoutSetter",(msg) => {
@@ -144,6 +174,15 @@ class WebCanvas extends React.Component{
             let vidArr = [...this.state.setterVidArray];
             vidArr.push("");
             this.setState({setterVidArray : vidArr});
+            //增加新增setter的默认位置和大小，初始位置为（0，0），初始宽高为320 * 200
+            let posSizeArr = [...this.setterPosSizeArray];
+            posSizeArr.push({
+              x : 0,
+              y : 0,
+              width : 320,
+              height : 200,
+            });
+            this.setterPosSizeArray = posSizeArr;
             //初始化动效设置数据
             let animeInfoArray = [...this.state.setterAniInfoArray];
             animeInfoArray.push({
@@ -378,6 +417,7 @@ class WebCanvas extends React.Component{
         //画布高度改变
         //将传入的画布长度上传至数据库canvasLength接口
         //将画布高度信息上传至数据库
+        /*
         const canvasLengthobj = {canvasHeight : this.props.pageLength};
         const body = JSON.stringify(canvasLengthobj);
         //json-server测试接口
@@ -395,6 +435,8 @@ class WebCanvas extends React.Component{
           //console.log(data);
         })
         .catch(e => console.log('错误:', e))
+        */
+       this.setState({curCanvasHeight : this.props.pageLength});
       }
       if(this.props.scrollTop !== this.state.curScrollTop){
         //画布下滚幅度改变
@@ -425,6 +467,75 @@ class WebCanvas extends React.Component{
           vidArr[this.state.activeKey] = this.props.vidUploaded;
           this.setState({setterVidArray : vidArr});
         }
+      }
+
+      //判断是否需要将数据结构上传到后端
+      if(this.props.save !== this.save){
+        if(this.props.save === true){
+          //将数据结构上传到后端
+          const data = {
+            LayoutSetterArray: this.state.LayoutSetterArray,
+            setterColorArray : this.state.setterColorArray,
+            setterContentArray : this.state.setterContentArray,
+            setterPicArray : this.state.setterPicArray,
+            setterVidArray : this.state.setterVidArray,
+            setterAniInfoArray : this.state.setterAniInfoArray,
+            setterPosSizeArray : this.setterPosSizeArray,
+          };
+          let body = JSON.stringify(data);
+          //json-server测试接口
+          //fetch('http://127.0.0.1:3000/webcanvasInfo',{
+            fetch('http://127.0.0.1:8081/webcanvasInfo/0', {
+            method:'post',
+            mode:'cors',
+            headers:{
+                'Content-Type': 'application/json;charset=UTF-8',
+                'Accept':'application/json, text/plain'
+            },
+            body: body
+          })
+          .then(res => res.json())
+          .then(data => {
+            //console.log(data);
+          })
+          .catch(e => console.log('错误:', e))
+
+          //将画布高度信息上传至数据库
+          const canvasLengthobj = {canvasHeight : this.props.pageLength};
+          body = JSON.stringify(canvasLengthobj);
+          //json-server测试接口
+          //fetch('http://127.0.0.1:3000/canvasLength',{
+            fetch('http://127.0.0.1:8081/canvasLength/0', {
+              method:'post',
+              mode:'cors',
+              headers:{
+                  'Content-Type': 'application/json;charset=UTF-8',
+                  'Accept':'application/json, text/plain'
+              },
+              body: body
+          })
+          .catch(e => console.log('错误:', e))
+        
+        
+        //将全局跟随信息上传至后端 
+        const canvasInfo = this.state.canvasAnimInfo;
+        body = JSON.stringify(canvasInfo);
+        //json-server测试接口
+        //fetch('http://127.0.0.1:3000/canvasInfo',{
+        fetch('http://127.0.0.1:8081/canvasInfo/0', {
+          method:'post',
+          mode:'cors',
+          headers:{
+              'Content-Type': 'application/json;charset=UTF-8',
+              'Accept':'application/json, text/plain'
+          },
+          body: body
+      })
+      .catch(e => console.log('错误:', e))
+        }
+
+        this.save = this.props.save;
+        this.props.handleSaveFinished();
       }
     }
 
@@ -658,6 +769,22 @@ class WebCanvas extends React.Component{
       }
     }
 
+    //layoutSetter拖拽到终止位置的回调函数
+    handleLayoutSetterPosChange(index, x, y){
+      //let posSizeArr = [...this.setterPosSizeArray];
+      //let setterPosInfo = posSizeArr[index];
+      this.setterPosSizeArray[index].x = x;
+      this.setterPosSizeArray[index].y = y;
+      //posSizeArr[index] = setterPosInfo;
+
+    }
+
+    //layoutSetter缩放到终止大小的回调函数
+    handleLayoutSetterSizeChange(index, width, height){
+      this.setterPosSizeArray[index].width = width;
+      this.setterPosSizeArray[index].height = height;
+    }
+
 
     render(){
    //根据setter的编号值取出指定setter的颜色
@@ -755,6 +882,12 @@ class WebCanvas extends React.Component{
                   handleMouseEnter={this.handleMouseEnter}
                   handleMouseLeave={this.handleMouseLeave}
                   canvasScrollTop={this.state.curScrollTop}
+                  handleLayoutSetterPosChange={this.handleLayoutSetterPosChange}
+                  handleLayoutSetterSizeChange={this.handleLayoutSetterSizeChange}
+                  x={this.setterPosSizeArray[index].x}
+                  y={this.setterPosSizeArray[index].y}
+                  width={this.setterPosSizeArray[index].width}
+                  height={this.setterPosSizeArray[index].height}
                   >
               </LayoutSetter>
             </div>)}
