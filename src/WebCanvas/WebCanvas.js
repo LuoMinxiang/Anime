@@ -125,6 +125,7 @@ class WebCanvas extends React.Component{
       .then(data => {
           //设置请求回来的数据结构
           this.setterPosSizeArray = data.setterPosSizeArray;
+          console.log("typeof(data.LayoutSetterArray) = " + typeof(data.LayoutSetterArray))
           this.setState({
             LayoutSetterArray : data.LayoutSetterArray,
             setterColorArray : data.setterColorArray,

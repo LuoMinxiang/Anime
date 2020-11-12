@@ -147,6 +147,22 @@ class LayoutSetter extends React.Component{
      .then(data => {
      })
      .catch(e => console.log('错误:', e))
+
+     //fetch('http://127.0.0.1:8081/setterInfo/0',{
+     //json-server测试接口
+     fetch('http://127.0.0.1:3000/setterInfo',{
+       method:'post',
+       mode:'cors',
+       headers:{
+        'Content-Type': 'application/json;charset=UTF-8',
+        'Accept':'application/json, text/plain'
+       },
+       body: body
+     })
+     .then(res => res.json())
+     .then(data => {
+     })
+     .catch(e => console.log('错误:', e))
   })
 
   //接收到被删除setter的索引：totalSetter--，并从data中删除该索引的setter

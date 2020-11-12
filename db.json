@@ -1,20 +1,20 @@
 {
   "setterInfo": {
-    "totalN": 2,
+    "totalN": 3,
     "setters": [
       {
-        "totalN": 2,
+        "totalN": 3,
         "index": 0,
         "width": 320,
         "height": 200,
-        "x": 175,
-        "y": 366,
+        "x": 300,
+        "y": 111,
         "pic": "",
         "vid": "",
         "color": {
-          "r": 245,
-          "g": 166,
-          "b": 35,
+          "r": 208,
+          "g": 2,
+          "b": 27,
           "a": 1
         },
         "content": "",
@@ -23,94 +23,6 @@
           "setMarquee": false,
           "changingContentArr": [],
           "changingInterval": 0,
-          "trailingContentArr": [
-            {
-              "name": "内容0",
-              "activeKeyColor": {
-                "r": 184,
-                "g": 233,
-                "b": 134,
-                "a": 1
-              },
-              "activeKeyContent": "",
-              "activeKeyPic": ""
-            }
-          ],
-          "trailingInterval": 0,
-          "trailerWidth": 100,
-          "trailerHeight": 100,
-          "hoverScalePicOnly": false,
-          "hoverScale": 1,
-          "hoverContentArr": [],
-          "startScrollTop": 0,
-          "endScrollTop": 0,
-          "startXY": {
-            "x": 175,
-            "y": 366
-          },
-          "endXY": {
-            "x": 375,
-            "y": 566
-          },
-          "deltaX": null,
-          "deltaY": null,
-          "startSize": {
-            "width": 320,
-            "height": 200
-          },
-          "endSize": {
-            "width": 320,
-            "height": 200
-          },
-          "deltaWidth": null,
-          "deltaHeight": null,
-          "hasScrollEffect": false
-        }
-      },
-      {
-        "totalN": 2,
-        "index": 1,
-        "width": 320,
-        "height": 200,
-        "x": 385,
-        "y": 119,
-        "pic": "",
-        "vid": "",
-        "color": {
-          "r": 74,
-          "g": 144,
-          "b": 226,
-          "a": 1
-        },
-        "content": "",
-        "animeInfo": {
-          "reveal": "",
-          "setMarquee": false,
-          "changingContentArr": [
-            {
-              "name": "内容0",
-              "activeKeyColor": {
-                "r": 74,
-                "g": 144,
-                "b": 226,
-                "a": 1
-              },
-              "activeKeyContent": "",
-              "activeKeyPic": ""
-            },
-            {
-              "name": "内容1",
-              "activeKeyColor": {
-                "r": 208,
-                "g": 2,
-                "b": 27,
-                "a": 1
-              },
-              "activeKeyContent": "",
-              "activeKeyPic": ""
-            }
-          ],
-          "changingInterval": 7,
           "trailingContentArr": [],
           "trailingInterval": 0,
           "trailerWidth": 0,
@@ -121,25 +33,126 @@
           "startScrollTop": 0,
           "endScrollTop": 0,
           "startXY": {
-            "x": 385,
-            "y": 119
+            "x": 0,
+            "y": 0
           },
           "endXY": {
-            "x": 585,
-            "y": 319
+            "x": -1,
+            "y": -1
           },
-          "deltaX": null,
-          "deltaY": null,
+          "deltaX": 0,
+          "deltaY": 0,
           "startSize": {
-            "width": 320,
-            "height": 200
+            "width": 0,
+            "height": 0
           },
           "endSize": {
-            "width": 320,
-            "height": 200
+            "width": -1,
+            "height": -1
           },
-          "deltaWidth": null,
-          "deltaHeight": null,
+          "deltaWidth": 0,
+          "deltaHeight": 0,
+          "hasScrollEffect": false
+        }
+      },
+      {
+        "totalN": 3,
+        "index": 1,
+        "width": 320,
+        "height": 200,
+        "x": 204,
+        "y": 391,
+        "pic": "",
+        "vid": "",
+        "color": {
+          "r": 126,
+          "g": 211,
+          "b": 33,
+          "a": 1
+        },
+        "content": "",
+        "animeInfo": {
+          "reveal": "",
+          "setMarquee": false,
+          "changingContentArr": [],
+          "changingInterval": 0,
+          "trailingContentArr": [],
+          "trailingInterval": 0,
+          "trailerWidth": 0,
+          "trailerHeight": 0,
+          "hoverScalePicOnly": false,
+          "hoverScale": 1,
+          "hoverContentArr": [],
+          "startScrollTop": 0,
+          "endScrollTop": 0,
+          "startXY": {
+            "x": 0,
+            "y": 0
+          },
+          "endXY": {
+            "x": -1,
+            "y": -1
+          },
+          "deltaX": 0,
+          "deltaY": 0,
+          "startSize": {
+            "width": 0,
+            "height": 0
+          },
+          "endSize": {
+            "width": -1,
+            "height": -1
+          },
+          "deltaWidth": 0,
+          "deltaHeight": 0,
+          "hasScrollEffect": false
+        }
+      },
+      {
+        "totalN": 3,
+        "index": 2,
+        "width": 320,
+        "height": 200,
+        "x": 738,
+        "y": 265,
+        "pic": "",
+        "vid": "http://127.0.0.1:8081/public/video/broadchurch.mp4",
+        "color": "transparent",
+        "content": "",
+        "animeInfo": {
+          "reveal": "",
+          "setMarquee": false,
+          "changingContentArr": [],
+          "changingInterval": 0,
+          "trailingContentArr": [],
+          "trailingInterval": 0,
+          "trailerWidth": 0,
+          "trailerHeight": 0,
+          "hoverScalePicOnly": false,
+          "hoverScale": 1,
+          "hoverContentArr": [],
+          "startScrollTop": 0,
+          "endScrollTop": 0,
+          "startXY": {
+            "x": 0,
+            "y": 0
+          },
+          "endXY": {
+            "x": -1,
+            "y": -1
+          },
+          "deltaX": 0,
+          "deltaY": 0,
+          "startSize": {
+            "width": 0,
+            "height": 0
+          },
+          "endSize": {
+            "width": -1,
+            "height": -1
+          },
+          "deltaWidth": 0,
+          "deltaHeight": 0,
           "hasScrollEffect": false
         }
       }
