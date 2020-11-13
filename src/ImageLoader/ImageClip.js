@@ -241,7 +241,7 @@ class ImageClip extends React.Component{
     fileChange = () =>{
         this.setState({ S : true });
         let picOM = this._file.files[0];
-        console.log("imageClip - filrChange - picOM = " + picOM);
+        //console.log("imageClip - filrChange - picOM = " + picOM);
         if(!picOM) return;
 
         // 从获取的图像中读取图片数据,即图片的BASE64码

@@ -3,6 +3,12 @@ import { Rnd } from 'react-rnd'
 import EventEmitter from '../Utils/EventEmitter'
 import Zoom from 'react-reveal/Zoom';
 import Fade from 'react-reveal/Fade';
+import Flip from 'react-reveal/Flip';
+import Rotate from 'react-reveal/Rotate';
+import Bounce from 'react-reveal/Bounce';
+import Slide from 'react-reveal/Slide';
+import Roll from 'react-reveal/Roll';
+import LightSpeed from 'react-reveal/LightSpeed';
 import {Color2Str} from '../Utils/Color2Str'
 import {GetFirstNotNullKey} from '../Utils/GetFirstNotNullKey'
 import Trailer from '../Trailer/Trailer'
@@ -340,7 +346,7 @@ setMarqueeTimer(spanWidth){
 }
 
 handleMouseMove(event){
-  //console.log("LayoutSetter - handleMouseMove");
+  console.log("LayoutSetter - handleMouseMove");
   //鼠标移动到画布内，出现鼠标跟随
   //这里event.client指的是在整个屏幕中的坐标，不是以画布组件的左上角为原点，而是以屏幕左上角为原点
   //故直接用event.client设置鼠标跟随位置，跟随组件会始终与鼠标差一个画布左上角到屏幕左上角的差值
@@ -361,14 +367,14 @@ handleMouseMove(event){
 }
 
 handleMouseOut(){
-  //console.log("LayoutSetter - handleMouseOut");
+  console.log("LayoutSetter - handleMouseOut");
 
   this.setState({showTrailer : false});
 }
 
 //悬停回调函数
 handleMouseEnter(){
-  //console.log("LayoutSetter - handleMouseEnter");
+  console.log("LayoutSetter - handleMouseEnter");
 
   //缩放:记下原始宽高，改变state中的宽高
   if(this.props.animeInfo.hoverScalePicOnly !== true && this.props.activeKey !== this.props.index){
@@ -420,7 +426,7 @@ handleMouseLeavePic(){
 
 //取消悬停回调函数
 handleMouseLeave(){
-  //console.log("LayoutSetter - handleMouseLeave");
+  console.log("LayoutSetter - handleMouseLeave");
 
   //恢复缩放
     //选没选中都要恢复：有可能缩放后才选中
@@ -578,26 +584,6 @@ sendSetterInfo(){
         trailerHeight : this.props.animeInfo.trailerHeight
       }
 
-      /*
-      const imgHoverScalePicOnlyStyle = {
-        //transition: "all 2s ease 0",
-        //transition: "width 2s ease 0",
-        width : this.state.picWidth,
-        //height : this.state.picHeight,
-        top : this.state.picTop,
-        left : this.state.picLeft,
-        position : "absolute"
-        
-      }
-
-      const imgNormalStyle = {
-        //transition: "width 2s ease 0",
-        width : "100%",  //"100%",
-        top : 0,
-        left : 0,
-        position: "absolute",
-      }
-      */
      const innerBasicComponent = 
      <div>
      {contentVid !== ''? 
@@ -631,16 +617,7 @@ sendSetterInfo(){
      //position : "absolute"
    }}>
      {interpolatingStyle =>
-     <div 
-     /*
-     style={{
-       width : interpolatingStyle.width,
-       height : interpolatingStyle.height,
-       //transform: `translate3d(${interpolatingStyle.left}px, ${interpolatingStyle.top}px, 0)`,
-       top : interpolatingStyle.top,
-       left : interpolatingStyle.left,
-       position: "absolute",
-     }}*/>
+     <div>
      <img 
      style={{
        width : this.props.animeInfo.hoverScalePicOnly? interpolatingStyle.width: "100%",
@@ -666,7 +643,7 @@ sendSetterInfo(){
    {/* div的内容必须是this.props.data，不然单一内容时手动修改setter内容无效 */}
    {this.props.vid === '' && this.props.pic === ''? this.props.animeInfo.setMarquee? 
    <div ref={element => this.marqueeRef = element} style={marqueeStyle} dangerouslySetInnerHTML={{__html:(this.props.data !== null && typeof(this.props.data) !== 'undefined') ? this.props.data.replace(/<p/g,'<span').replace(/p>/g,'span>') + this.marqueeFillingArr : this.props.data}}></div>
-   : <div  
+   : <div><div  
      //dangerouslySetInnerHTML={{__html:contentText}}
      dangerouslySetInnerHTML={{__html:contentText}}
      style={divStyle}
@@ -676,15 +653,150 @@ sendSetterInfo(){
      onMouseLeave={this.handleMouseLeave}
      ref={element => this.divRef = element}>
      
-     </div> : null}
+     </div>
      <Trailer
          top={this.state.trailTop}
          left={this.state.trailLeft}
          trailInfo={trailInfo}
          visibility={this.state.showTrailer}
      ></Trailer> 
+     </div>:null}
      </div>
 
+this.basicComponent = 
+<Rnd 
+        style={this.props.activeKey==this.props.index?activeLayoutSetterStyle:layoutSetterStyle}
+        //size={{ width: this.props.activeKey === this.props.index?this.originalWidth:this.state.width,  height: this.props.activeKey === this.props.index?this.originalHeight:this.state.height }}
+        size={{ width: this.state.width,  height: this.state.height }}
+        //position={{ x: this.props.activeKey === this.props.index?this.originalX:this.state.x, y: this.props.activeKey === this.props.index?this.originalY:this.state.y }}
+        position={{ x: this.state.x, y: this.state.y }}
+        onDragStart={() => {
+          this.setState({
+            x : this.originalX,
+            y : this.originalY
+          })
+        }}
+        onDragStop={(e, d) => { 
+          this.setState({ x: d.x, y: d.y }, ()=>{
+              this.sendSetterInfo();
+          });
+          this.originalX = d.x;
+          this.originalY = d.y; 
+          this.originalScrollX = d.x;
+          this.originalScrollY = d.y;
+
+          this.props.handleLayoutSetterPosChange(this.props.index, d.x, d.y);
+        }}
+        onResizeStart={() => {
+          this.setState({
+            width : this.originalWidth,
+            height : this.originalHeight,
+          })
+        }}
+        onResizeStop={(e, direction, ref, delta, position) => {
+          let setterWidth = ref.style.width;
+          let setterHeight = ref.style.height;
+          if(typeof(ref.style.width) == "string"){
+            let index = ref.style.width.lastIndexOf("p")
+            setterWidth =parseFloat(ref.style.width.substring(0,index));
+            index = ref.style.height.lastIndexOf("p");
+            setterHeight = parseFloat(ref.style.height.substring(0,index));
+        }
+          this.setState({
+            width: setterWidth,
+            height: setterHeight,
+            ...position,
+
+            picWidth : setterWidth,
+            picHeight : setterHeight,
+          },()=>{
+            this.sendSetterInfo();
+          });
+          this.originalHeight = setterHeight;
+          this.originalWidth = setterWidth;
+
+          this.props.handleLayoutSetterSizeChange(this.props.index, setterWidth, setterHeight);
+      }}>
+
+{contentVid !== ''? 
+     <div style={{
+       width : "100%",
+       //height : 200
+     }}>
+     <video 
+       loop="loop"
+       muted="muted"
+       playsInline="playsinline"
+       autoPlay="autoplay"
+       style={{
+         position: "relative",
+         width: "100%",
+         height: "100%",
+         objectFit: "cover",
+         preload : "none",
+       }}>
+         <source src={this.props.vid} type="video/mp4"/>
+       </video>  
+       </div>: null}
+
+     {(contentVid === '' && contentPic !== '')? 
+   <Motion 
+    style={{
+     width : spring(this.state.picWidth),  //"100%",
+     height : spring(this.state.picHeight),
+     top : spring(this.state.picTop),
+     left : spring(this.state.picLeft),
+     //position : "absolute"
+   }}>
+     {interpolatingStyle =>
+     <div>
+     <img 
+     style={{
+       width : this.props.animeInfo.hoverScalePicOnly? interpolatingStyle.width: "100%",
+       top : this.props.animeInfo.hoverScalePicOnly? interpolatingStyle.top: 0,
+       left : this.props.animeInfo.hoverScalePicOnly? interpolatingStyle.left: 0,
+       position: "absolute",
+     }}
+     //style={this.props.animeInfo.hoverScalePicOnly? imgHoverScalePicOnlyStyle : imgNormalStyle}
+     //className={this.props.animeInfo.hoverScalePicOnly?'scaleComponent':''}
+     onMouseDown={event => {event.preventDefault()}} 
+     //onMouseMove={this.handleMouseMove}
+     //onMouseOut={this.handleMouseOut}
+     onMouseEnter={this.handleMouseEnterPic}
+     onMouseLeave={this.handleMouseLeavePic}
+     src={contentPic} 
+     alt=" pic not here " 
+     //width={this.state.picWidth}
+     /></div>}
+   </Motion> : null}
+  
+   
+   
+   {/* div的内容必须是this.props.data，不然单一内容时手动修改setter内容无效 */}
+   {this.props.vid === '' && this.props.pic === ''? this.props.animeInfo.setMarquee? 
+   <div ref={element => this.marqueeRef = element} style={marqueeStyle} dangerouslySetInnerHTML={{__html:(this.props.data !== null && typeof(this.props.data) !== 'undefined') ? this.props.data.replace(/<p/g,'<span').replace(/p>/g,'span>') + this.marqueeFillingArr : this.props.data}}></div>
+   : <div><div  
+     //dangerouslySetInnerHTML={{__html:contentText}}
+     dangerouslySetInnerHTML={{__html:contentText}}
+     style={divStyle}
+     onMouseMove={this.handleMouseMove}
+     onMouseOut={this.handleMouseOut}
+     onMouseEnter={this.handleMouseEnter}
+     onMouseLeave={this.handleMouseLeave}
+     ref={element => this.divRef = element}>
+     
+     </div>
+     <Trailer
+         top={this.state.trailTop}
+         left={this.state.trailLeft}
+         trailInfo={trailInfo}
+         visibility={this.state.showTrailer}
+     ></Trailer> 
+     </div>:null}
+          
+      </Rnd>
+
+/*
       if(this.usingMotion === true){
         //使用带motion的basicComponent
     this.basicComponent = 
@@ -757,10 +869,6 @@ sendSetterInfo(){
         //使用不带motion的basicComponent
         this.basicComponent = 
         <Rnd 
-        onMouseMove={this.handleMouseMove}
-     onMouseOut={this.handleMouseOut}
-     onMouseEnter={this.handleMouseEnter}
-     onMouseLeave={this.handleMouseLeave}
         style={this.props.activeKey==this.props.index?activeLayoutSetterStyle:layoutSetterStyle}
         //size={{ width: this.props.activeKey === this.props.index?this.originalWidth:this.state.width,  height: this.props.activeKey === this.props.index?this.originalHeight:this.state.height }}
         size={{ width: this.state.width,  height: this.state.height }}
@@ -818,7 +926,7 @@ sendSetterInfo(){
           
       </Rnd>
       }
-    
+    */
     
     //加上出现动效后的布局组件
     this.revealComponent = this.basicComponent;
@@ -829,6 +937,24 @@ sendSetterInfo(){
         break;
       case "Fade":
         this.revealComponent = <Fade>{this.basicComponent}</Fade>
+        break;
+      case "Flip":
+        this.revealComponent = <Flip>{this.basicComponent}</Flip>
+        break;
+      case "Rotate":
+        this.revealComponent = <Rotate>{this.basicComponent}</Rotate>
+        break;
+      case "Bounce":
+        this.revealComponent = <Bounce>{this.basicComponent}</Bounce>
+        break;
+      case "Slide":
+        this.revealComponent = <Slide>{this.basicComponent}</Slide>
+        break;
+      case "Roll":
+        this.revealComponent = <Roll>{this.basicComponent}</Roll>
+        break;
+      case "LightSpeed":
+        this.revealComponent = <LightSpeed>{this.basicComponent}</LightSpeed>
         break;
     }
         return (

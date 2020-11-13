@@ -7,6 +7,8 @@ import ImageLoader from '../ImageLoader/ImageLoader'
 import InputLabel from '@material-ui/core/InputLabel';
 import MenuItem from '@material-ui/core/MenuItem';
 import Select from '@material-ui/core/Select';
+import Button from '@material-ui/core/Button';
+
 
 //弹出设置窗口中的跟随动效设置tabbar
 
@@ -41,12 +43,27 @@ class TrailingSettingTabbar extends React.Component{
             <MenuItem value={"image"}>图片</MenuItem>
             </Select>
             {this.state.contentType === "image"?
-            <ImageLoader
+            <div>
+            <input
+                accept="image/*"
+                style={{display: "none",}}
+                id="trailImgBtn"
+                multiple
+                onChange={this.props.handleImageUploaded}
+                type="file"
+            />
+            <label htmlFor="trailImgBtn">
+                <Button variant="contained" color="primary" component="span">
+                上传图片
+                </Button>
+            </label>
+        </div>
+            /*<ImageLoader
               handleImageUploaded={this.props.handleImageUploaded}
               setterWidth={this.props.width}
               setterHeight={this.props.height}
               setterPic={this.props.pic}
-            ></ImageLoader>:<Tabs defaultIndex={0}>
+            ></ImageLoader>*/:<Tabs defaultIndex={0}>
             <TabList>
               <Tab>颜色</Tab>
               <Tab>文字</Tab>

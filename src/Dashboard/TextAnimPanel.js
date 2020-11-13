@@ -47,7 +47,7 @@ class TextAnimPanel extends React.Component{
             startScrollTop : 0,
             endScrollTop : 0,
             startXY : {x:0, y:0},
-            endXY : {x:-1, y:-1},
+            endXY : {x:null, y:null},
             deltaX : 0,
             deltaY : 0,
             //判断是否设置过下滚动效：方便preview中放进数组里在onscroll中遍历
@@ -193,6 +193,12 @@ class TextAnimPanel extends React.Component{
                 </MenuItem>
                 <MenuItem value={"Fade"}>浮现</MenuItem>
                 <MenuItem value={"Zoom"}>急升</MenuItem>
+                <MenuItem value={"Flip"}>翻出</MenuItem>
+                <MenuItem value={"Rotate"}>旋转</MenuItem>
+                <MenuItem value={"Bounce"}>弹跳</MenuItem>
+                <MenuItem value={"Slide"}>滑入</MenuItem>
+                <MenuItem value={"Roll"}>滚入</MenuItem>
+                <MenuItem value={"LightSpeed"}>急刹</MenuItem>
                 </Select>
             </FormControl>
             }}
@@ -280,8 +286,8 @@ class TextAnimPanel extends React.Component{
                     this.animInfo.startXY.x = activeKeyInfo.x;
                     this.animInfo.startXY.y = activeKeyInfo.y;
                     //console.log("textAnimPanel - setter.x = " + activeKeyInfo.x + ", setter.y = " + activeKeyInfo.y)
-                    this.animInfo.endXY.x = activeKeyInfo.animeInfo.endXY.x !== -1? activeKeyInfo.animeInfo.endXY.x: activeKeyInfo.x + 200;
-                    this.animInfo.endXY.y = activeKeyInfo.animeInfo.endXY.y !== -1? activeKeyInfo.animeInfo.endXY.y: activeKeyInfo.y + 200;
+                    this.animInfo.endXY.x = activeKeyInfo.animeInfo.endXY.x !== null? activeKeyInfo.animeInfo.endXY.x: activeKeyInfo.x + 200;
+                    this.animInfo.endXY.y = activeKeyInfo.animeInfo.endXY.y !== null? activeKeyInfo.animeInfo.endXY.y: activeKeyInfo.y + 200;
                     this.animInfo.hasScrollEffect = activeKeyInfo.animeInfo.hasScrollEffect;
                     this.animInfo.startSize.width = activeKeyInfo.width;
                     this.animInfo.startSize.height = activeKeyInfo.height;

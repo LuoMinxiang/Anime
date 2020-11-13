@@ -45,7 +45,12 @@ class ControlledAccordions extends React.Component{
             //打开or关闭设置窗口
             open : false,
             //常变内容/颜色数组
-            contentInfoArr : (this.props.activeKeyInfo === null || typeof(this.props.activeKeyInfo) === 'undefined')? [] : [{
+            contentInfoArr : (this.props.activeKeyInfo === null || typeof(this.props.activeKeyInfo) === 'undefined')? [{
+                name : '内容0',
+                activeKeyColor : "transparent",
+                activeKeyContent : "",
+                activeKeyPic : "",
+            }] : [{
                 name : '内容0',
                 activeKeyColor : this.props.activeKeyInfo.color,
                 activeKeyContent : this.props.activeKeyInfo.content,
@@ -142,7 +147,12 @@ class ControlledAccordions extends React.Component{
                     setMarquee : this.props.activeKeyInfo.animeInfo.setMarquee,
                 }) 
             }
+            //更新setter的图片
+            if(typeof(this.state.contentInfoArr[0]) !== 'undefined' && this.props.activeKeyInfo.pic !== this.state.contentInfoArr[0].activeKeyPic){
+              this.state.contentInfoArr[0].activeKeyPic = this.props.activeKeyInfo.pic;
+            }
         }
+
     }
 
       handleClick = (index) => ()=>{
@@ -265,10 +275,50 @@ class ControlledAccordions extends React.Component{
     }
 
     //在image loader中设置指定序号内容的文字
-    handlePicChange(img){
+    /*handlePicChange(img){
       //富文本编辑器中的text被修改了
       this.selectedPic = img;
       this.isPicChanged = true;
+    }*/
+
+    handlePicChange(event){
+      //富文本编辑器中的text被修改了
+      //获取图片在本机中的信息
+      const backEndHost = "http://127.0.0.1:8081";
+      const getImgUrlPre = "/public/image/"
+      let picOM = event.target.files[0];
+      if(!picOM) return;
+      // 从获取的信息中的url中读取图片文件
+      let fileReade = new FileReader();
+      fileReade.readAsDataURL(picOM);
+      fileReade.onload = ev =>{
+          //图片读取完成：上传至后端
+          //此处的url应该是服务端提供的上传文件api 
+          // const url = 'http://localhost:3000/api/upload';
+          const url = 'http://127.0.0.1:8081/public/image/';
+
+          const form = new FormData();
+
+          //此处的file字段由服务端的api决定，可以是其它值
+          form.append('file', picOM);
+
+          fetch(url, {
+              method: 'POST',
+              body: form
+          })
+          .then(res => res.json())
+          .then(data => {
+              //获取存到后端的文件名
+              //console.log("data.fileName = " + data.fileName);
+              const url = backEndHost + getImgUrlPre + data.fileName;
+              //this.props.handleImgChange(url);
+              this.selectedPic = url;
+              this.isPicChanged = true;
+          })
+      }
+
+      //this.selectedPic = img;
+      //this.isPicChanged = true;
     }
 
     //点击保存设置好的颜色并关闭弹窗
@@ -416,14 +466,32 @@ class ControlledAccordions extends React.Component{
         tabIndex={this.resetTab}
         contentType="text">
       </Tabbar>
-    const imgLoader = 
-      <ImageLoader
+    const imgLoader = //null;
+    /*<ImageAnimeLoadingBtn
+        handleImgChange={this.handlePicChange}
+      ></ImageAnimeLoadingBtn>*/
+    <div>
+    <input
+        accept="image/*"
+        style={{display: "none",}}
+        id="imgbtn"
+        multiple
+        onChange={this.handlePicChange}
+        type="file"
+    />
+    <label htmlFor="imgbtn">
+        <Button variant="contained" color="primary" component="span">
+        上传图片
+        </Button>
+    </label>
+</div>
+      /*<ImageLoader
         handleImageUploaded={this.handlePicChange}
         setterWidth={this.activeKeyInfo?this.activeKeyInfo.width:0}
         setterHeight={this.activeKeyInfo?this.activeKeyInfo.height:0}
         setterPic={this.state.contentInfoArr.length!==0?this.state.contentInfoArr[this.selectedContentIndex && this.selectedContentIndex<this.state.contentInfoArr.length? this.selectedContentIndex : 0].activeKeyPic:''}
         withClip={true}
-      ></ImageLoader>
+      ></ImageLoader>*/
     const dialogContent = 
       <div>
         {contentTypeSelector}

@@ -168,7 +168,7 @@ class HoverSetter extends React.Component{
              //广播添加悬停出现组件
             EventEmitter.emit("addHoverSetter");
             //广播打开跟随动效设置模式
-            EventEmitter.emit("isTrailingSettingOn", true);
+            EventEmitter.emit("isHoverSettingOn", true);
         }
       
   //chip的删除处理函数必须是一个函数，handleDelete(item)相当于调用handleDelete，如果不返回一个函数是不会出现可删除效果的
@@ -182,7 +182,7 @@ class HoverSetter extends React.Component{
       //重置文字和颜色
       this.resetColorText();
       //广播常变设置模式开启
-      EventEmitter.emit("isTrailingSettingOn", true);
+      EventEmitter.emit("isHoverSettingOn", true);
   }
   
   //打开设置对话框

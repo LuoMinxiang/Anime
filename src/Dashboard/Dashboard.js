@@ -201,11 +201,18 @@ export default function Dashboard() {
     //alert("save clicked");
     //点击保存后通知webcanvas将数据结构上传到后端
     setSave(true);
+    EventEmitter.emit("getSettersInfo","getSettersInfo");
   }
 
   //webcanvas将数据结构上传至后端后的回调函数
   const handleSaveFinished = () => {
     setSave(false);
+  }
+
+  const handleDownloadClick = () => {
+    //window.open="http://127.0.0.1:8081/download";
+    const w=window.open('about:blank');
+    w.location.href='http://127.0.0.1:8081/download'
   }
 
   return (
@@ -227,7 +234,11 @@ export default function Dashboard() {
             Animé
           </Typography>
 
-          <Button variant="outlined" color="inherit" onClick={handlePreviewClick}>
+          <Button variant="outlined" color="inherit" onClick={handleDownloadClick}>
+              下载
+          </Button>
+
+          <Button style={{marginLeft: "10px"}} variant="outlined" color="inherit" onClick={handlePreviewClick}>
               <Link to="/preview" target="_blank" style={{ textDecoration:'none', color:'white'}}>预览</Link>
           </Button>
 

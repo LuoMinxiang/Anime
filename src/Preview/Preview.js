@@ -1,6 +1,12 @@
 import React from 'react'
 import Zoom from 'react-reveal/Zoom';
 import Fade from 'react-reveal/Fade';
+import Flip from 'react-reveal/Flip';
+import Rotate from 'react-reveal/Rotate';
+import Bounce from 'react-reveal/Bounce';
+import Slide from 'react-reveal/Slide';
+import Roll from 'react-reveal/Roll';
+import LightSpeed from 'react-reveal/LightSpeed';
 import {Color2Str} from '../Utils/Color2Str'
 import {GetFirstNotNullKey} from '../Utils/GetFirstNotNullKey'
 import Trailer from '../Trailer/Trailer'
@@ -61,10 +67,10 @@ class Preview extends React.Component{
         //被悬停的setter下标
         this.hoveredSetterIndex = null;
         //悬停缩放前的位置和宽高数组
-        this.originalWidth = null;
-        this.originalHeight = null;
-        this.originalX = null;
-        this.originalY = null;
+        this.originalWidth = {};
+        this.originalHeight = {};
+        this.originalX = {};
+        this.originalY = {};
 
         //当前页面下滚幅度
         this.curScrollTop = 0;
@@ -175,6 +181,10 @@ class Preview extends React.Component{
             for(let i = 0;i < data["totalN"];i++){
                 const setter = data["setters"][i];
                 if(setter !== null && typeof(setter) !== 'undefined'){
+                    this.originalWidth[setter.index] = setter.width;
+                    this.originalHeight[setter.index] = setter.height;
+                    this.originalX[setter.index] = setter.x;
+                    this.originalY[setter.index] = setter.y;
                     //为每个setter设置对应的常变动效
                     //如果设置了常变动效（定时器时间间隔不为0），则设置常变定时器
                     if(setter.animeInfo.changingInterval){
@@ -413,14 +423,14 @@ class Preview extends React.Component{
             })
         }else{
             //缩放框
-            this.originalWidth = setter.width;
-            this.originalHeight = setter.height;
-            this.originalX = setter.x;
-            this.originalY = setter.y;
-            setter.x = setter.x - (setter.width * setter.animeInfo.hoverScale - setter.width) / 2;
-            setter.y = setter.y - (setter.height * setter.animeInfo.hoverScale - setter.height) / 2;
-            setter.height = setter.height * setter.animeInfo.hoverScale;
-            setter.width = setter.width * setter.animeInfo.hoverScale;
+            //this.originalWidth = setter.width;
+            //this.originalHeight = setter.height;
+            //this.originalX = setter.x;
+            //his.originalY = setter.y;
+            setter.x = this.originalX - (this.originalWidth[index] * setter.animeInfo.hoverScale - this.originalWidth[index]) / 2;
+            setter.y = this.originalY - (this.originalHeight[index] * setter.animeInfo.hoverScale - this.originalHeight[index]) / 2;
+            setter.height = this.originalHeight[index] * setter.animeInfo.hoverScale;
+            setter.width = this.originalWidth[index] * setter.animeInfo.hoverScale;
             this.state.setters[index] = setter;
         }
         
@@ -442,10 +452,10 @@ class Preview extends React.Component{
                 picSetterInfoArr : arr,
             })
         }else{
-            setter.x = this.originalX;
-            setter.y = this.originalY;
-            setter.height = this.originalHeight;
-            setter.width = this.originalWidth;
+            setter.x = this.originalX[index];
+            setter.y = this.originalY[index];
+            setter.height = this.originalHeight[index];
+            setter.width = this.originalWidth[index];
             this.state.setters[index] = setter;
         }
         
@@ -728,6 +738,24 @@ class Preview extends React.Component{
             case "Fade":
               revealComponent = <Fade>{basicComponent}</Fade>
               break;
+            case "Flip":
+                revealComponent = <Flip>{basicComponent}</Flip>
+                break;
+            case "Rotate":
+                revealComponent = <Rotate>{basicComponent}</Rotate>
+                break;
+            case "Bounce":
+                revealComponent = <Bounce>{basicComponent}</Bounce>
+                break;
+            case "Slide":
+                revealComponent = <Slide>{basicComponent}</Slide>
+                break;
+            case "Roll":
+                revealComponent = <Roll>{basicComponent}</Roll>
+                break;
+            case "LightSpeed":
+                revealComponent = <LightSpeed>{basicComponent}</LightSpeed>
+                break;
           }
         animatedSetters[setter.index] = revealComponent;
     }

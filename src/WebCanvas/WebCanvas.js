@@ -117,6 +117,25 @@ class WebCanvas extends React.Component{
         this.handleLayoutSetterSizeChange = this.handleLayoutSetterSizeChange.bind(this);
     }
     componentDidMount(){
+      //将预览界面的高度初始化为712
+      const canvasLengthobj = {canvasHeight : this.props.pageLength};
+        const body = JSON.stringify(canvasLengthobj);
+        //json-server测试接口
+        fetch('http://127.0.0.1:3000/canvasLength',{
+          method:'post',
+          mode:'cors',
+          headers:{
+              'Content-Type': 'application/json;charset=UTF-8',
+              'Accept':'application/json, text/plain'
+          },
+          body: body
+        })
+        .then(res => res.json())
+        .then(data => {
+          //console.log(data);
+        })
+        .catch(e => console.log('错误:', e))
+
       //从后端请求数据结构
       //json-server测试地址
       //fetch('http://127.0.0.1:3000/webcanvasInfo')
@@ -124,24 +143,54 @@ class WebCanvas extends React.Component{
       .then(res => res.json())
       .then(data => {
           //设置请求回来的数据结构
-          this.setterPosSizeArray = data.setterPosSizeArray;
-          console.log("typeof(data.LayoutSetterArray) = " + typeof(data.LayoutSetterArray))
+          const info = JSON.parse(data.webcanvasInfo);
+          let tempLayoutSetterArray = [];
+          let tempsetterColorArray = [];
+          let tempsetterContentArray = [];
+          let tempsetterPicArray = [];
+          let tempsetterVidArray = [];
+          let tempsetterAniInfoArray = [];
+          if(typeof(info.LayoutSetterArray) !== 'undefined'){
+            tempLayoutSetterArray = info.LayoutSetterArray;
+          }
+          if(typeof(info.setterColorArray) !== 'undefined'){
+            tempsetterColorArray = info.setterColorArray;
+          }
+          if(typeof(info.setterContentArray) !== 'undefined'){
+            tempsetterContentArray = info.setterContentArray;
+          }
+          if(typeof(info.setterPicArray) !== 'undefined'){
+            tempsetterPicArray = info.setterPicArray;
+          }
+          if(typeof(info.setterVidArray) !== 'undefined'){
+            tempsetterVidArray = info.setterVidArray;
+          }
+          if(typeof(info.setterAniInfoArray) !== 'undefined'){
+            tempsetterAniInfoArray = info.setterAniInfoArray;
+          }
+          if(typeof(info.setterPosSizeArray) !== 'undefined'){
+            this.setterPosSizeArray = info.setterPosSizeArray;
+          }
           this.setState({
-            LayoutSetterArray : data.LayoutSetterArray,
-            setterColorArray : data.setterColorArray,
-            setterContentArray : data.setterContentArray,
-            setterPicArray : data.setterPicArray,
-            setterVidArray : data.setterVidArray,
-            setterAniInfoArray : data.setterAniInfoArray,
-          });
+            LayoutSetterArray : tempLayoutSetterArray,
+            setterColorArray : tempsetterColorArray,
+            setterContentArray : tempsetterContentArray,
+            setterPicArray : tempsetterPicArray,
+            setterVidArray : tempsetterVidArray,
+            setterAniInfoArray : tempsetterAniInfoArray,
+          })
+          
       })
       .catch(e => console.log('错误:', e)) 
 
       //json-server测试地址
       //fetch('http://127.0.0.1:3000/canvasInfo')
       fetch('http://127.0.0.1:8081/canvasInfo/0')
-      .then(res => res.json())
+      .then(
+        res => console.log(res.text())
+        )
       .then(data => {
+         //console.log("data = " + data);
           //设置请求回来的数据结构
           let visibility = false;
           if(data.trailingContentArr.length !== 0){
@@ -213,7 +262,7 @@ class WebCanvas extends React.Component{
               startScrollTop : 0,
               endScrollTop : 0,
               startXY : {x:0, y:0},
-              endXY : {x:-1, y:-1},
+              endXY : {x:null, y:null},
               deltaX : 0,
               deltaY : 0,
               startSize : {width:0, height:0},
@@ -381,7 +430,7 @@ class WebCanvas extends React.Component{
             activeKeyHoverContentArr[index] = {}
             activeKeyHoverContentArr[index].width = 320;  
             activeKeyHoverContentArr[index].height = 200;
-            activeKeyHoverContentArr[index].top = 0;
+            activeKeyHoverContentArr[index].top = this.state.curScrollTop;
             activeKeyHoverContentArr[index].left = 0;
             activeKeyHoverContentArr[index].activeKeyColor = null;
             activeKeyHoverContentArr[index].activeKeyContent = "";
@@ -418,7 +467,7 @@ class WebCanvas extends React.Component{
         //画布高度改变
         //将传入的画布长度上传至数据库canvasLength接口
         //将画布高度信息上传至数据库
-        /*
+        
         const canvasLengthobj = {canvasHeight : this.props.pageLength};
         const body = JSON.stringify(canvasLengthobj);
         //json-server测试接口
@@ -436,7 +485,7 @@ class WebCanvas extends React.Component{
           //console.log(data);
         })
         .catch(e => console.log('错误:', e))
-        */
+        
        this.setState({curCanvasHeight : this.props.pageLength});
       }
       if(this.props.scrollTop !== this.state.curScrollTop){
@@ -521,6 +570,7 @@ class WebCanvas extends React.Component{
         //将全局跟随信息上传至后端 
         const canvasInfo = this.state.canvasAnimInfo;
         body = JSON.stringify(canvasInfo);
+        console.log("body = " + body);
         //json-server测试接口
         //fetch('http://127.0.0.1:3000/canvasInfo',{
         fetch('http://127.0.0.1:8081/canvasInfo/0', {
@@ -533,6 +583,7 @@ class WebCanvas extends React.Component{
           body: body
       })
       .catch(e => console.log('错误:', e))
+      
         }
 
         this.save = this.props.save;
